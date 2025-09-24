@@ -51,6 +51,7 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Đăng nhập thành công");
+      window.dispatchEvent(new Event("userChanged"));
       router.push("/");
       /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (err: any) {
@@ -88,6 +89,7 @@ export default function LoginPage() {
       // Lưu user Firestore vào localStorage
       localStorage.setItem("user", JSON.stringify(userData));
       toast.success("Đăng nhập Google thành công");
+      window.dispatchEvent(new Event("userChanged"));
       router.push("/");
     } catch (err: any) {
       console.error(err);

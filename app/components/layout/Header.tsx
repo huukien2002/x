@@ -24,16 +24,28 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
+  const loadUser = () => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    setUser(storedUser ? JSON.parse(storedUser) : null);
+  };
+
+  useEffect(() => {
+    loadUser(); // chạy lần đầu
+
+    // lắng nghe cả storage (multi-tab) và custom event (same tab)
+    window.addEventListener("storage", loadUser);
+    window.addEventListener("userChanged", loadUser);
+
+    return () => {
+      window.removeEventListener("storage", loadUser);
+      window.removeEventListener("userChanged", loadUser);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    setUser(null);
+    // 🔥 bắn custom event cho cùng tab
+    window.dispatchEvent(new Event("userChanged"));
     router.push("/login");
     handleMenuClose();
   };
