@@ -151,7 +151,14 @@ const ProfilePage: React.FC = () => {
   if (!user) return <Typography>Loading user...</Typography>;
 
   return (
-    <Box sx={{ maxWidth: 1000,  margin: { xs: 0, sm: "0 auto" }, mt: { xs: 2, sm: 4 }, px: 2 }}>
+    <Box
+      sx={{
+        maxWidth: 1000,
+        margin: { xs: 0, sm: "0 auto" },
+        mt: { xs: 2, sm: 4 },
+        px: 2,
+      }}
+    >
       {/* Header User */}
       <Box display="flex" alignItems="center" mb={4}>
         <Avatar src={user.avatar} sx={{ width: 60, height: 60, mr: 2 }}>
@@ -190,6 +197,7 @@ const ProfilePage: React.FC = () => {
             <Select
               value={favoriteFilter}
               label="Favorite"
+              /* eslint-disable @typescript-eslint/no-explicit-any */
               onChange={(e) => setFavoriteFilter(e.target.value as any)}
             >
               <MenuItem value="all">All</MenuItem>

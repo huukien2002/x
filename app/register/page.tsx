@@ -60,6 +60,7 @@ export default function RegisterPage() {
       toast.success("User registered successfully!");
       reset();
       setAvatarPreview(null);
+      /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (err: any) {
       console.error(err);
       alert("Error: " + err.message);
@@ -94,6 +95,7 @@ export default function RegisterPage() {
       });
 
       toast.success("Đăng ký Google thành công!");
+      /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (err: any) {
       console.error(err);
     }

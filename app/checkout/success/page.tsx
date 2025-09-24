@@ -1,9 +1,9 @@
 "use client";
 
+// app/checkout/success/page.tsx
 import React, { useEffect, useState } from "react";
 import { Container, Typography, Box, Button } from "@mui/material";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   doc,
   getDoc,
@@ -17,11 +17,18 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
 
-export default function SuccessPage() {
-  const searchParams = useSearchParams();
-  const amount = Number(searchParams.get("amount") || "0");
-  const email = searchParams.get("email");
-  const transactionId = searchParams.get("session_id"); // Stripe session_id
+interface Props {
+  searchParams: {
+    amount?: string;
+    email?: string;
+    session_id?: string;
+  };
+}
+
+export default function CheckoutSuccessPage({ searchParams }: Props) {
+  const amount = Number(searchParams.amount || "0");
+  const email = searchParams.email;
+  const transactionId = searchParams.session_id;
 
   const [status, setStatus] = useState<
     "loading" | "success" | "already_completed" | "error"
@@ -39,7 +46,6 @@ export default function SuccessPage() {
         const txSnap = await getDoc(txRef);
 
         if (!txSnap.exists()) {
-          // Tạo transaction lần đầu
           await setDoc(txRef, {
             email,
             amount,
@@ -51,7 +57,6 @@ export default function SuccessPage() {
         const txData = (await getDoc(txRef)).data();
 
         if (txData?.status !== "completed") {
-          // Lấy user theo username
           const q = query(collection(db, "users"), where("email", "==", email));
           const snapshot = await getDocs(q);
 
@@ -62,20 +67,13 @@ export default function SuccessPage() {
             });
           }
 
-          // Cập nhật transaction thành completed
           await updateDoc(txRef, {
             status: "completed",
             completedAt: Date.now(),
           });
 
-          console.log(
-            `✅ Transaction ${transactionId} completed, added ${amount} slots for ${email}`
-          );
           setStatus("success");
         } else {
-          console.log(
-            `⚠️ Transaction ${transactionId} already completed, skipping...`
-          );
           setStatus("already_completed");
         }
       } catch (err) {

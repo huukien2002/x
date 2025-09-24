@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../../lib/firebase.config";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { Google } from "@mui/icons-material";
 
 interface LoginForm {
@@ -52,6 +52,7 @@ export default function LoginPage() {
 
       toast.success("Đăng nhập thành công");
       router.push("/");
+      /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (err: any) {
       console.error(err);
       toast.error("Login error: " + err.message);

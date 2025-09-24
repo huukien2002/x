@@ -45,6 +45,7 @@ export default function ChatPage() {
       const snapshot = await getDocs(collection(fsDb, "users"));
       const list: UserType[] = [];
       snapshot.forEach((doc) => {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
         const data = doc.data() as any;
         if (data.email !== user.email) {
           list.push({ id: doc.id, ...data });
