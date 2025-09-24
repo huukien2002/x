@@ -22,12 +22,6 @@ const plans = [
   { amount: 1000, slots: 1000 },
 ];
 
-// Test key (⚠️ chỉ dùng thử, KHÔNG production)
-const PUBLISHABLE_KEY =
-  "pk_test_51S8Cx2EDgScNEVgkRKUcCaqxPgaGgysQuP8hkdrSW73opPciHfpmiQTPQpsp2TSy9bUOI7aE7rTynrs8MHSe3EWR00Btspet4f";
-const SECRET_KEY =
-  "sk_test_51S8Cx2EDgScNEVgkWtz2HT6egYnqryuAn9kdkvOfETv91LdobcraXBGBlnq9CsfSA0c8KDDW041wqpkabTtAHS9n00VUKjP5lC";
-
 export default function StripeTestPage() {
   const user = useUser();
 
@@ -37,7 +31,9 @@ export default function StripeTestPage() {
       return;
     }
 
-    const stripe = new Stripe(SECRET_KEY);
+    const stripe = new Stripe(
+      "sk_test_51S8Cx2EDgScNEVgkWtz2HT6egYnqryuAn9kdkvOfETv91LdobcraXBGBlnq9CsfSA0c8KDDW041wqpkabTtAHS9n00VUKjP5lC"
+    );
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -60,7 +56,9 @@ export default function StripeTestPage() {
       cancel_url: "http://localhost:3000/checkout/cancel",
     });
 
-    const stripeJs = await loadStripe(PUBLISHABLE_KEY);
+    const stripeJs = await loadStripe(
+      "pk_test_51S8Cx2EDgScNEVgkRKUcCaqxPgaGgysQuP8hkdrSW73opPciHfpmiQTPQpsp2TSy9bUOI7aE7rTynrs8MHSe3EWR00Btspet4f"
+    );
     if (session.id) {
       stripeJs?.redirectToCheckout({ sessionId: session.id });
     }
