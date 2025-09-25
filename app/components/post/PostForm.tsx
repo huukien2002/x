@@ -1,9 +1,21 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { db } from "../../../lib/firebase.config";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  increment,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import Image from "next/image";
+import { useUser } from "@/hooks/useUser";
+import { toast } from "react-toastify";
 
 interface PostFormProps {
   userId: string;
@@ -11,10 +23,12 @@ interface PostFormProps {
 }
 
 export default function PostForm({ userId, onPostAdded }: PostFormProps) {
+  const user = useUser();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Tạo preview khi file thay đổi
   useEffect(() => {
@@ -31,6 +45,11 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
   }, [file]);
 
   const handleSubmit = async () => {
+    if (!user) return;
+
+    if (user?.postsRemaining <= 0) {
+      toast.error("Bạn đã hết lượt thêm bài viết.");
+    }
     if (!file) return;
 
     // Upload ảnh lên Cloudinary
@@ -57,10 +76,23 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
       sent: false,
     });
 
+    // 🔥 Trừ postsRemaining trong users
+    const q = query(collection(db, "users"), where("email", "==", user.email));
+    const snapshot = await getDocs(q);
+    const userDoc = snapshot.docs[0];
+    await updateDoc(doc(db, "users", userDoc.id), {
+      postsRemaining: increment(-1),
+    });
+
+    toast.success("Thêm bài viết thành công!");
+
     setTitle("");
     setContent("");
     setFile(null);
-    onPostAdded(); // gọi callback để refresh danh sách
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+    onPostAdded();
   };
 
   return (
@@ -85,6 +117,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
         sx={{ mb: 2 }}
       />
       <input
+        ref={inputRef}
         type="file"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
       />

@@ -7,6 +7,7 @@ export function useUser() {
     username: string;
     uid: string;
     avatar?: string;
+    postsRemaining: number;
   } | null>(null);
 
   useEffect(() => {

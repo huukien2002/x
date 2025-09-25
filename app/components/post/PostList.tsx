@@ -1,13 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../lib/firebase.config";
-import {
-  collection,
-  query,
-  orderBy,
-  getDocs,
-  where,
-} from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import PostCard from "./PostCard";
 
 interface User {
@@ -33,9 +27,10 @@ interface Post {
 
 interface PostListProps {
   currentUserId: string;
+  key: number;
 }
 
-export default function PostList({ currentUserId }: PostListProps) {
+export default function PostList({ currentUserId, key }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
 
   const getUserByEmail = async (email: string): Promise<User> => {
@@ -92,7 +87,7 @@ export default function PostList({ currentUserId }: PostListProps) {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [key]);
 
   return (
     <>
