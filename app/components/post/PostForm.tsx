@@ -49,6 +49,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
 
     if (user?.postsRemaining <= 0) {
       toast.error("Bạn đã hết lượt thêm bài viết.");
+      return;
     }
     if (!file) return;
 
