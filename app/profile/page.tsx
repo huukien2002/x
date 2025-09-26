@@ -18,7 +18,6 @@ import {
   InputLabel,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import DownloadIcon from "@mui/icons-material/Download";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import {
@@ -32,11 +31,11 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
 import { useUser } from "@/hooks/useUser";
-
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Dayjs } from "dayjs";
-
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 interface Post {
   id: string;
   title: string;
@@ -46,6 +45,7 @@ interface Post {
   sent: boolean;
   authorId: string;
   favorite: boolean;
+  visible: boolean;
 }
 
 const ProfilePage: React.FC = () => {
@@ -59,6 +59,14 @@ const ProfilePage: React.FC = () => {
   const [favoriteFilter, setFavoriteFilter] = useState<
     "all" | "favorite" | "notFavorite"
   >("all");
+
+  const [visibleFilter, setVisibleFilter] = useState<
+    "all" | "visible" | "notVisible"
+  >("all");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 8;
 
   const fetchUserPosts = async (email: string) => {
     setLoading(true);
@@ -78,25 +86,25 @@ const ProfilePage: React.FC = () => {
           sent: Boolean(docData.sent) || false,
           authorId: docData.authorId || "",
           favorite: docData.favorite ?? false,
+          visible: docData.visible ?? false,
         };
       });
 
-      // Filter theo ngày nếu có
-      if (startDate) {
+      // Filter theo ngày
+      if (startDate)
         data = data.filter((p) => p.createdAt >= startDate.valueOf());
-      }
-      if (endDate) {
-        data = data.filter((p) => p.createdAt <= endDate.valueOf());
-      }
+      if (endDate) data = data.filter((p) => p.createdAt <= endDate.valueOf());
 
-      if (favoriteFilter === "favorite") {
-        data = data.filter((p) => p.favorite);
-      } else if (favoriteFilter === "notFavorite") {
+      // Filter favorite
+      if (favoriteFilter === "favorite") data = data.filter((p) => p.favorite);
+      if (favoriteFilter === "notFavorite")
         data = data.filter((p) => !p.favorite);
-      }
+
+      // Filter visible
+      if (visibleFilter === "visible") data = data.filter((p) => p.visible);
+      if (visibleFilter === "notVisible") data = data.filter((p) => !p.visible);
 
       data.sort((a, b) => b.createdAt - a.createdAt);
-
       setPosts(data);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -106,8 +114,11 @@ const ProfilePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user?.email) fetchUserPosts(user.email);
-  }, [user, startDate, endDate, favoriteFilter]);
+    if (user?.email) {
+      setCurrentPage(1); // reset page khi filter thay đổi
+      fetchUserPosts(user.email);
+    }
+  }, [user, startDate, endDate, favoriteFilter, visibleFilter]);
 
   const handleDownload = async (url: string, title: string) => {
     try {
@@ -129,18 +140,10 @@ const ProfilePage: React.FC = () => {
     try {
       const postRef = doc(db, "posts", postId);
       const postSnap = await getDoc(postRef);
+      if (!postSnap.exists()) return;
 
-      if (!postSnap.exists()) {
-        console.log("Document does not exist!");
-        return;
-      }
-
-      const data = postSnap.data();
-      const currentFavorite = data.favorite;
-
-      await updateDoc(postRef, {
-        favorite: currentFavorite === undefined ? true : !currentFavorite,
-      });
+      const currentFavorite = postSnap.data()?.favorite;
+      await updateDoc(postRef, { favorite: !currentFavorite });
 
       fetchUserPosts(user?.email);
     } catch (error) {
@@ -148,7 +151,32 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const toggleVisible = async (postId: string) => {
+    try {
+      const postRef = doc(db, "posts", postId);
+      const postSnap = await getDoc(postRef);
+
+      if (!postSnap.exists()) return;
+
+      const currentVisible = postSnap.data()?.visible;
+      const newVisible = currentVisible === undefined ? false : !currentVisible;
+
+      await updateDoc(postRef, { visible: newVisible });
+
+      // Load lại danh sách posts
+      fetchUserPosts(user?.email);
+    } catch (error) {
+      console.error("Error toggling visibility:", error);
+    }
+  };
+
   if (!user) return <Typography>Loading user...</Typography>;
+
+  // Pagination logic
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(posts.length / postsPerPage);
 
   return (
     <Box
@@ -170,15 +198,13 @@ const ProfilePage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Filter Date */}
+      {/* Filter Date + Favorite */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box
           display="flex"
-          sx={{
-            flexDirection: { xs: "column", sm: "row" },
-          }}
+          flexDirection={{ xs: "column", sm: "row" }}
           gap={2}
-          mb={3}
+          mb={2}
         >
           <DatePicker
             label="Start Date"
@@ -197,7 +223,6 @@ const ProfilePage: React.FC = () => {
             <Select
               value={favoriteFilter}
               label="Favorite"
-              /* eslint-disable @typescript-eslint/no-explicit-any */
               onChange={(e) => setFavoriteFilter(e.target.value as any)}
             >
               <MenuItem value="all">All</MenuItem>
@@ -205,8 +230,22 @@ const ProfilePage: React.FC = () => {
               <MenuItem value="notFavorite">Not Favorite</MenuItem>
             </Select>
           </FormControl>
+
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>Visible</InputLabel>
+            <Select
+              value={visibleFilter}
+              label="Visible"
+              onChange={(e) => setVisibleFilter(e.target.value as any)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="visible">Visible</MenuItem>
+              <MenuItem value="notVisible">Not Visible</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
-        <Box display="flex" gap={2}>
+
+        <Box display="flex" gap={2} mb={4}>
           <Button
             variant="contained"
             onClick={() => fetchUserPosts(user.email)}
@@ -228,121 +267,162 @@ const ProfilePage: React.FC = () => {
         </Box>
       </LocalizationProvider>
 
-      {/* Collection */}
+      {/* Posts Grid */}
       {loading ? (
         <Typography>Loading posts...</Typography>
       ) : posts.length === 0 ? (
         <Typography sx={{ mt: 5 }}>No posts yet.</Typography>
       ) : (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(2, 1fr)",
-              md: "repeat(4, 1fr)",
-            },
-            gap: 2,
-            mt: 5,
-          }}
-        >
-          {posts.map((post) => (
-            <Card
-              key={post.id}
-              sx={{
-                position: "relative",
-                cursor: "pointer",
-                transition: "transform 0.3s, box-shadow 0.3s",
-                "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: 6,
-                },
-              }}
-            >
-              {post.imageUrl && (
-                <Box
-                  sx={{
-                    width: "100%",
-                    pt: "75%",
-                    position: "relative",
-                  }}
-                >
-                  <CardMedia
-                    component="img"
-                    image={post.imageUrl}
-                    alt={post.title}
-                    sx={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      display: "flex",
-                      gap: 1,
-                    }}
-                  >
-                    <Tooltip title="Download">
-                      <IconButton
-                        size="small"
-                        sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownload(post.imageUrl, post.title);
-                        }}
+        <>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
+              gap: 2,
+            }}
+          >
+            {currentPosts.map((post) => (
+              <Card
+                key={post.id}
+                sx={{
+                  position: "relative",
+                  cursor: "pointer",
+                  transition: "transform 0.3s, box-shadow 0.3s",
+                  "&:hover": { transform: "translateY(-5px)", boxShadow: 6 },
+                }}
+              >
+                {post.imageUrl && (
+                  <Box sx={{ width: "100%", pt: "75%", position: "relative" }}>
+                    <CardMedia
+                      component="img"
+                      image={post.imageUrl}
+                      alt={post.title}
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        display: "flex",
+                        gap: 1,
+                      }}
+                    >
+                      <Tooltip title="Download">
+                        <IconButton
+                          size="small"
+                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(post.imageUrl, post.title);
+                          }}
+                        >
+                          <DownloadIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Zoom">
+                        <IconButton
+                          size="small"
+                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setZoomImage(post.imageUrl);
+                          }}
+                        >
+                          <ZoomInIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip
+                        title={post.favorite ? "Favorite" : "UnFavorite"}
                       >
-                        <DownloadIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Zoom">
-                      <IconButton
-                        size="small"
-                        sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setZoomImage(post.imageUrl);
-                        }}
+                        <IconButton
+                          size="small"
+                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(post.id);
+                          }}
+                        >
+                          <FavoriteIcon
+                            fontSize="small"
+                            color={post.favorite ? "error" : "inherit"}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip
+                        title={
+                          post.visible !== false ? "Hide Post" : "Show Post"
+                        }
                       >
-                        <ZoomInIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={post.favorite ? "Favorite" : "UnFavorite"}>
-                      <IconButton
-                        size="small"
-                        sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(post.id);
-                        }}
-                      >
-                        <FavoriteIcon
-                          fontSize="small"
-                          color={post.favorite ? "error" : "inherit"}
-                        />
-                      </IconButton>
-                    </Tooltip>
+                        <IconButton
+                          size="small"
+                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleVisible(post.id);
+                          }}
+                        >
+                          {post.visible !== false ? (
+                            <VisibilityIcon fontSize="small" />
+                          ) : (
+                            <VisibilityOffIcon fontSize="small" />
+                          )}
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Box>
-                </Box>
-              )}
-              <CardContent>
-                <Typography variant="h6">{post.title}</Typography>
-                <Typography variant="body2" mb={1}>
-                  {post.thrilled}
-                </Typography>
-                <Typography variant="caption">
-                  {new Date(post.createdAt).toLocaleString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
+                )}
+                <CardContent>
+                  <Typography variant="h6">{post.title}</Typography>
+                  <Typography variant="body2" mb={1}>
+                    {post.thrilled}
+                  </Typography>
+                  <Typography variant="caption">
+                    {new Date(post.createdAt).toLocaleString()}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Box py={2} display="flex" justifyContent="center" mt={3} gap={1}>
+              <Button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+              >
+                Prev
+              </Button>
+              {[...Array(totalPages)].map((_, idx) => (
+                <Button
+                  key={idx}
+                  variant={currentPage === idx + 1 ? "contained" : "outlined"}
+                  onClick={() => setCurrentPage(idx + 1)}
+                >
+                  {idx + 1}
+                </Button>
+              ))}
+              <Button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </Box>
+          )}
+        </>
       )}
 
       {/* Lightbox */}

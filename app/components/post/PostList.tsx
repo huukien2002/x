@@ -34,6 +34,8 @@ interface Post {
   comments: Comment[];
   sent: boolean;
   createdAt: string | number;
+  favorite: boolean;
+  visible: boolean;
 }
 
 interface PostListProps {
@@ -68,62 +70,85 @@ export default function PostList({ currentUserId }: PostListProps) {
     if (loading) return;
     setLoading(true);
 
-    let q = query(
-      collection(db, "posts"),
-      orderBy("createdAt", "desc"),
-      limit(PAGE_SIZE)
-    );
+    try {
+      let postsData: Post[] = [];
+      let fetchCount = 0;
+      let nextDoc = lastDoc ?? null;
 
-    if (isNextPage && lastDoc) {
-      q = query(
-        collection(db, "posts"),
-        orderBy("createdAt", "desc"),
-        startAfter(lastDoc),
-        limit(PAGE_SIZE)
-      );
-    }
+      while (postsData.length < PAGE_SIZE) {
+        // Tính số post cần fetch thêm
+        const remaining = PAGE_SIZE - postsData.length;
+        let q;
 
-    const snap = await getDocs(q);
+        if (!nextDoc) {
+          q = query(
+            collection(db, "posts"),
+            orderBy("createdAt", "desc"),
+            limit(remaining + 5) // fetch dư để lọc
+          );
+        } else {
+          q = query(
+            collection(db, "posts"),
+            orderBy("createdAt", "desc"),
+            startAfter(nextDoc),
+            limit(remaining + 5)
+          );
+        }
 
-    if (snap.empty) {
-      setHasMore(false);
-      setLoading(false);
-      return;
-    }
+        const snap = await getDocs(q);
 
-    const postsData: Post[] = [];
-    for (const docSnap of snap.docs) {
-      const postData = docSnap.data();
+        if (snap.empty) {
+          setHasMore(false);
+          break;
+        }
 
-      // lấy author theo email
-      const author = await getUserByEmail(postData.authorId);
+        for (const docSnap of snap.docs) {
+          const postData = docSnap.data();
+          if (!postData.visible) continue; // lọc tại client
 
-      // lấy comments
-      const commentsSnap = await getDocs(
-        collection(db, "posts", docSnap.id, "comments")
-      );
-      const comments: Comment[] = [];
-      for (const c of commentsSnap.docs) {
-        const cData = c.data();
-        const user = await getUserByEmail(cData.userId);
-        comments.push({ id: c.id, text: cData.text, user });
+          const author = await getUserByEmail(postData.authorId);
+
+          const commentsSnap = await getDocs(
+            collection(db, "posts", docSnap.id, "comments")
+          );
+          const comments: Comment[] = await Promise.all(
+            commentsSnap.docs.map(async (c) => {
+              const cData = c.data();
+              const user = await getUserByEmail(cData.userId);
+              return { id: c.id, text: cData.text, user };
+            })
+          );
+
+          postsData.push({
+            id: docSnap.id,
+            title: postData.title,
+            thrilled: postData.thrilled,
+            imageUrl: postData.imageUrl,
+            sent: postData.sent,
+            createdAt: postData.createdAt,
+            author,
+            comments,
+            favorite: postData.favorite ?? false,
+            visible: postData.visible ?? true,
+          });
+
+          if (postsData.length >= PAGE_SIZE) break; // đủ số post
+        }
+
+        nextDoc = snap.docs[snap.docs.length - 1];
+        fetchCount += snap.docs.length;
+
+        // Nếu fetch hết mà vẫn không đủ, dừng
+        if (snap.docs.length === 0) break;
       }
 
-      postsData.push({
-        id: docSnap.id,
-        title: postData.title,
-        thrilled: postData.thrilled,
-        imageUrl: postData.imageUrl,
-        sent: postData.sent,
-        createdAt: postData.createdAt,
-        author,
-        comments,
-      });
+      setPosts((prev) => (isNextPage ? [...prev, ...postsData] : postsData));
+      setLastDoc(nextDoc);
+    } catch (err) {
+      console.error("Error fetching posts:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setPosts((prev) => (isNextPage ? [...prev, ...postsData] : postsData));
-    setLastDoc(snap.docs[snap.docs.length - 1]);
-    setLoading(false);
   };
 
   useEffect(() => {
