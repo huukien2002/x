@@ -150,7 +150,7 @@ export default function ChatPage() {
   }
 
   return (
-    <Box display={{ xs: "block", sm: "flex" }} height="100vh">
+    <Box display={{ xs: "block", sm: "flex" }}>
       {/* Danh sách user */}
       <Box width={{ xs: "100%", sm: "30%" }} borderRight="1px solid #ccc">
         <Typography variant="h6" p={2}>

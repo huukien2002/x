@@ -13,8 +13,12 @@ const ClientLayout = ({ children }: Props) => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
-      {children}
-      <ToastContainer />
+
+      {/* children */}
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {children} {/* ChatPage */}
+      </Box>
+
       <Footer />
     </Box>
   );
