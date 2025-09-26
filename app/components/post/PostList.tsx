@@ -1,8 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../lib/firebase.config";
-import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  where,
+  limit,
+  startAfter,
+  DocumentData,
+  QueryDocumentSnapshot,
+} from "firebase/firestore";
 import PostCard from "./PostCard";
+import { Button, Box } from "@mui/material";
 
 interface User {
   id: string;
@@ -27,11 +38,16 @@ interface Post {
 
 interface PostListProps {
   currentUserId: string;
-  key: number;
 }
 
-export default function PostList({ currentUserId, key }: PostListProps) {
+export default function PostList({ currentUserId }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [lastDoc, setLastDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const PAGE_SIZE = 3;
 
   const getUserByEmail = async (email: string): Promise<User> => {
     const userQ = query(collection(db, "users"), where("email", "==", email));
@@ -48,9 +64,32 @@ export default function PostList({ currentUserId, key }: PostListProps) {
     return { id: "", username: "Unknown", avatar: "" };
   };
 
-  const fetchPosts = async () => {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  const fetchPosts = async (isNextPage = false) => {
+    if (loading) return;
+    setLoading(true);
+
+    let q = query(
+      collection(db, "posts"),
+      orderBy("createdAt", "desc"),
+      limit(PAGE_SIZE)
+    );
+
+    if (isNextPage && lastDoc) {
+      q = query(
+        collection(db, "posts"),
+        orderBy("createdAt", "desc"),
+        startAfter(lastDoc),
+        limit(PAGE_SIZE)
+      );
+    }
+
     const snap = await getDocs(q);
+
+    if (snap.empty) {
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
 
     const postsData: Post[] = [];
     for (const docSnap of snap.docs) {
@@ -82,23 +121,37 @@ export default function PostList({ currentUserId, key }: PostListProps) {
       });
     }
 
-    setPosts(postsData);
+    setPosts((prev) => (isNextPage ? [...prev, ...postsData] : postsData));
+    setLastDoc(snap.docs[snap.docs.length - 1]);
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchPosts();
-  }, [key]);
+  }, []);
 
   return (
-    <>
+    <Box sx={{ paddingBottom: 5, mt: 2 }}>
       {posts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
           currentUserId={currentUserId}
-          onRefresh={fetchPosts}
+          onRefresh={() => fetchPosts(false)}
         />
       ))}
-    </>
+
+      {hasMore && (
+        <Box textAlign="center" mt={2}>
+          <Button
+            variant="outlined"
+            onClick={() => fetchPosts(true)}
+            disabled={loading}
+          >
+            {loading ? "Đang tải..." : "Xem thêm"}
+          </Button>
+        </Box>
+      )}
+    </Box>
   );
 }

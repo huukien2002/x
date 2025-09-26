@@ -12,7 +12,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import { Box, TextField, Button, Typography, Avatar } from "@mui/material";
 import Image from "next/image";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "react-toastify";
@@ -97,48 +97,187 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
   };
 
   return (
-    <Box sx={{ mb: 4, p: 2, bgcolor: "white", borderRadius: 2, boxShadow: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Thêm bài viết
-      </Typography>
+    <Box
+      sx={{
+        maxWidth: 600,
+        mx: "auto",
+        p: 3,
+        borderRadius: 3,
+        bgcolor: "background.paper",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+      }}
+    >
+      {/* Header với Avatar */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+        <Avatar
+          src={user?.avatar || ""}
+          alt={user?.username || "User"}
+          sx={{ width: 48, height: 48, mr: 2 }}
+        />
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: "bold",
+            color: "text.primary",
+          }}
+        >
+          {user?.username || "Bạn"}
+        </Typography>
+      </Box>
+
+      {/* Title bài viết */}
       <TextField
-        label="Tiêu đề"
+        placeholder="Bạn đang nghĩ gì?"
         fullWidth
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 1,
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 3,
+            padding: "4px 12px",
+            minHeight: 40,
+            "& fieldset": {
+              borderColor: "grey.400",
+            },
+            "&:hover fieldset": {
+              borderColor: "primary.main",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "primary.main",
+              boxShadow: "0 0 8px rgba(25,118,210,0.2)",
+            },
+          },
+          "& .MuiInputBase-input": {
+            padding: "6px 0",
+          },
+        }}
+        variant="outlined"
       />
+
+      {/* Description bài viết */}
       <TextField
-        label="Nội dung"
+        placeholder="Nội dung bài viết..."
         fullWidth
         multiline
-        rows={3}
+        rows={2}
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 3,
+            "& fieldset": {
+              borderColor: "grey.400",
+            },
+            "&:hover fieldset": {
+              borderColor: "primary.main",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "primary.main",
+              boxShadow: "0 0 8px rgba(25,118,210,0.2)",
+            },
+          },
+        }}
+        variant="outlined"
       />
-      <input
-        ref={inputRef}
-        type="file"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-      />
-      {preview && (
-        <Box sx={{ mt: 2 }}>
-          <Image
-            src={preview}
-            alt="Preview"
-            width={300}
-            height={300}
-            style={{ borderRadius: 8, objectFit: "cover" }}
+
+      {/* Upload ảnh */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Button
+          variant="outlined"
+          component="label"
+          sx={{
+            mb: 2,
+            borderRadius: 3,
+            border: "2px dashed",
+            borderColor: "primary.main",
+            color: "primary.main",
+            "&:hover": {
+              background: "rgba(25,118,210,0.1)",
+              borderColor: "primary.main",
+            },
+          }}
+        >
+          📁 Thêm ảnh
+          <input
+            type="file"
+            hidden
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+        </Button>
+
+        {preview && (
+          <Box
+            sx={{
+              mt: 1,
+              width: 150,
+              height: 150,
+              borderRadius: 3,
+              overflow: "hidden",
+              position: "relative",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+              "&:hover .overlay": { opacity: 1 },
+            }}
             onClick={() => {
               setFile(null);
               setPreview(null);
             }}
-          />
-        </Box>
-      )}
+          >
+            <Image
+              src={preview}
+              alt="Preview"
+              fill
+              style={{ objectFit: "cover" }}
+            />
+            <Box
+              className="overlay"
+              sx={{
+                position: "absolute",
+                inset: 0,
+                bgcolor: "rgba(25,118,210,0.4)",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                opacity: 0,
+                transition: "opacity 0.3s",
+                borderRadius: 3,
+              }}
+            >
+              ❌ Xóa ảnh
+            </Box>
+          </Box>
+        )}
+      </Box>
 
-      <Button variant="contained" sx={{ mt: 2 }} onClick={handleSubmit}>
+      {/* Submit Button */}
+      <Button
+        variant="contained"
+        size="large"
+        onClick={handleSubmit}
+        sx={{
+          borderRadius: 3,
+          background: "linear-gradient(90deg, #1976d2, #42a5f5)",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "1rem",
+          py: 1,
+          "&:hover": {
+            background: "linear-gradient(90deg, #42a5f5, #1976d2)",
+          },
+          transition: "all 0.3s ease",
+        }}
+      >
         Đăng bài
       </Button>
     </Box>
