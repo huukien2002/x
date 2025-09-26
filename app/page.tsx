@@ -128,7 +128,7 @@ export default function HomePage() {
             onPostAdded={() => setRefreshKey((prev) => prev + 1)}
           />
 
-          <PostList key={refreshKey} currentUserId={currentUserId} />
+          <PostList refreshKey={refreshKey} currentUserId={currentUserId} />
         </Box>
 
         {/* RIGHT SIDEBAR */}

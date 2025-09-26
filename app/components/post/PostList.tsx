@@ -40,9 +40,10 @@ interface Post {
 
 interface PostListProps {
   currentUserId: string;
+  refreshKey: number;
 }
 
-export default function PostList({ currentUserId }: PostListProps) {
+export default function PostList({ currentUserId, refreshKey }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastDoc, setLastDoc] =
     useState<QueryDocumentSnapshot<DocumentData> | null>(null);
@@ -153,7 +154,7 @@ export default function PostList({ currentUserId }: PostListProps) {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [refreshKey]);
 
   return (
     <Box sx={{ paddingBottom: 5, mt: 2 }}>
