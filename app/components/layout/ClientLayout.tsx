@@ -4,6 +4,7 @@ import { Box } from "@mui/material";
 import Header from "./Header";
 import Footer from "./Footer";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ const ClientLayout = ({ children }: Props) => {
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {children} {/* ChatPage */}
       </Box>
-
+      <ToastContainer />
       <Footer />
     </Box>
   );
