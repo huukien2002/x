@@ -25,6 +25,7 @@ interface RegisterForm {
 
 export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const { handleSubmit, control, register, reset } = useForm<RegisterForm>({
     defaultValues: {
       username: "",
@@ -49,11 +50,29 @@ export default function RegisterPage() {
         return;
       }
 
+      let avatarUrl = "";
+
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "unsigned_preset");
+
+        const res = await fetch(
+          "https://api.cloudinary.com/v1_1/dhmr88vva/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+        const data = await res.json();
+        avatarUrl = data.url;
+      }
+
       await addDoc(collection(db, "users"), {
         username: data.username,
         email: data.email,
         password: data.password,
-        avatar: avatarPreview || null,
+        avatar: avatarUrl,
         postsRemaining: 5,
         createdAt: Date.now(),
       });
@@ -104,6 +123,7 @@ export default function RegisterPage() {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
   };

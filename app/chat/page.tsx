@@ -162,26 +162,38 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col flex-1 sm:flex-row">
-      <div className=" md:w-1/4 border-r border-gray-300 h-full w-full">
-        <Typography variant="h6" p={2}>
+      <div className="md:w-1/4 w-full h-full border-r border-gray-300 flex flex-col">
+        {/* Header */}
+        <div className="h-[80px] flex items-center px-3 text-lg  border-b border-gray-300">
           Users
-        </Typography>
-        <Divider />
-        <List>
+        </div>
+
+        {/* Danh sách user scroll */}
+        <div className="h-[calc(100vh-200px)] overflow-y-auto">
           {users.map((u) => (
-            <ListItemButton
+            <button
               key={u.id}
-              selected={selectedUser?.id === u.id}
               onClick={() => handleSelectUser(u)}
+              className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 ${
+                selectedUser?.id === u.id ? "bg-gray-200" : ""
+              }`}
             >
-              <ListItemAvatar>
-                <Avatar src={u.avatar || undefined}>{u.username?.[0]}</Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={u.username} secondary={u.email} />
-            </ListItemButton>
+              <div className="w-15 h-15 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                {u.avatar ? (
+                  <Avatar src={u.avatar || undefined}>{u.username?.[0]}</Avatar>
+                ) : (
+                  <span className="text-sm font-medium">{u.username?.[0]}</span>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{u.username}</span>
+                <span className="text-xs text-gray-500">{u.email}</span>
+              </div>
+            </button>
           ))}
-        </List>
+        </div>
       </div>
+
       <div className="w-full md:w-3/4 h-full">
         {selectedUser ? (
           <>
@@ -263,128 +275,11 @@ export default function ChatPage() {
             justifyContent="center"
             alignItems="center"
           >
-            <Typography>Select a user to chat</Typography>
+            <Typography sx={{mt: 2}}>Select a user to chat</Typography>
           </Box>
         )}
       </div>
     </div>
-    // <Box display={{ xs: "block", sm: "flex" }}>
-    //   {/* Danh sách user */}
-    // <Box width={{ xs: "100%", sm: "30%" }} borderRight="1px solid #ccc">
-    //   <Typography variant="h6" p={2}>
-    //     Users
-    //   </Typography>
-    //   <Divider />
-    //   <List>
-    //     {users.map((u) => (
-    //       <ListItemButton
-    //         key={u.id}
-    //         selected={selectedUser?.id === u.id}
-    //         onClick={() => handleSelectUser(u)}
-    //       >
-    //         <ListItemAvatar>
-    //           <Avatar src={u.avatar || undefined}>{u.username?.[0]}</Avatar>
-    //         </ListItemAvatar>
-    //         <ListItemText primary={u.username} secondary={u.email} />
-    //       </ListItemButton>
-    //     ))}
-    //   </List>
-    // </Box>
 
-    //   {/* Chat window */}
-    // <Box flex={1} display="flex" flexDirection="column">
-    //   {selectedUser ? (
-    //     <>
-    //       <Box p={2} borderBottom="1px solid #ccc">
-    //         <Typography variant="h6">
-    //           Chat with{" "}
-    //           <span style={{ fontWeight: "bold", color: "#1976d2" }}>
-    //             {selectedUser.username}
-    //           </span>
-    //         </Typography>
-    //       </Box>
-    //       <Box
-    //         sx={{
-    //           // border: "1px solid #ccc",
-    //           flex: 1,
-    //           p: 2,
-    //           overflow: "auto",
-    //           maxHeight: "calc(100vh - 200px)",
-    //         }}
-    //         flex={1}
-    //         p={2}
-    //         overflow="auto"
-    //       >
-    //         {messages.map((msg, idx) => (
-    //           <Box
-    //             key={idx}
-    //             display="flex"
-    //             flexDirection="column"
-    //             alignItems={
-    //               msg.sender === user?.email ? "flex-end" : "flex-start"
-    //             }
-    //             mb={0.5}
-    //           >
-    //             <Box
-    //               p={1.2}
-    //               borderRadius={2}
-    //               bgcolor={
-    //                 msg.sender === user?.email ? "primary.main" : "grey.200"
-    //               }
-    //               color={msg.sender === user?.email ? "white" : "black"}
-    //               maxWidth="70%"
-    //             >
-    //               <Typography variant="body1">{msg.text}</Typography>
-    //             </Box>
-
-    //             <Typography
-    //               variant="caption"
-    //               sx={{
-    //                 fontSize: "0.65rem",
-    //                 opacity: 0.6,
-    //                 mt: 0.3,
-    //               }}
-    //             >
-    //               {msg.createdAt
-    //                 ? new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
-    //                     hour: "2-digit",
-    //                     minute: "2-digit",
-    //                   })
-    //                 : ""}
-    //             </Typography>
-    //           </Box>
-    //         ))}
-    //       </Box>
-    //       <Box p={2} display="flex" gap={1}>
-    //         <TextField
-    //           fullWidth
-    //           value={text}
-    //           onChange={(e) => setText(e.target.value)}
-    //           placeholder="Type a message..."
-    //           size="small"
-    //           onKeyDown={(e) => {
-    //             if (e.key === "Enter" && !e.shiftKey) {
-    //               e.preventDefault();
-    //               handleSend();
-    //             }
-    //           }}
-    //         />
-    //         <Button variant="contained" onClick={handleSend}>
-    //           Send
-    //         </Button>
-    //       </Box>
-    //     </>
-    //   ) : (
-    //     <Box
-    //       flex={1}
-    //       display="flex"
-    //       justifyContent="center"
-    //       alignItems="center"
-    //     >
-    //       <Typography>Select a user to chat</Typography>
-    //     </Box>
-    //   )}
-    // </Box>
-    // </Box>
   );
 }
