@@ -29,6 +29,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
 
   // Tạo preview khi file thay đổi
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
   }, [file]);
 
   const handleSubmit = async () => {
+    if (loading) return; // chặn double click
     if (!user) return;
 
     if (user?.postsRemaining <= 0) {
@@ -53,50 +55,62 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
     }
     if (!file) return;
 
-    // Upload ảnh lên Cloudinary
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "unsigned_preset");
+    try {
+      setLoading(true); // bắt đầu submit
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dhmr88vva/image/upload",
-      {
-        method: "POST",
-        body: formData,
+      // Upload ảnh lên Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "unsigned_preset");
+
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dhmr88vva/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await res.json();
+
+      // Thêm post vào Firestore
+      await addDoc(collection(db, "posts"), {
+        authorId: userId,
+        title,
+        content,
+        imageUrl: data.secure_url,
+        createdAt: Date.now(),
+        sent: false,
+        favorite: true,
+        visible: true,
+      });
+
+      // 🔥 Trừ postsRemaining trong users
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", user.email)
+      );
+      const snapshot = await getDocs(q);
+      const userDoc = snapshot.docs[0];
+      await updateDoc(doc(db, "users", userDoc.id), {
+        postsRemaining: increment(-1),
+      });
+
+      toast.success("Thêm bài viết thành công!");
+
+      setTitle("");
+      setContent("");
+      setFile(null);
+      if (inputRef.current) {
+        inputRef.current.value = "";
       }
-    );
-    const data = await res.json();
-
-    // Thêm post vào Firestore
-    await addDoc(collection(db, "posts"), {
-      authorId: userId,
-      title,
-      content,
-      imageUrl: data.secure_url,
-      createdAt: Date.now(),
-      sent: false,
-      favorite: true,
-      visible: true,
-    });
-
-    // 🔥 Trừ postsRemaining trong users
-    const q = query(collection(db, "users"), where("email", "==", user.email));
-    const snapshot = await getDocs(q);
-    const userDoc = snapshot.docs[0];
-    await updateDoc(doc(db, "users", userDoc.id), {
-      postsRemaining: increment(-1),
-    });
-
-    toast.success("Thêm bài viết thành công!");
-
-    setTitle("");
-    setContent("");
-    setFile(null);
-    if (inputRef.current) {
-      inputRef.current.value = "";
+      onPostAdded();
+      window.location.reload();
+    } catch (err) {
+      toast.error("Có lỗi xảy ra khi thêm bài viết");
+      console.error(err);
+    } finally {
+      setLoading(false); // kết thúc submit
     }
-    onPostAdded();
-    window.location.reload();
   };
 
   return (
@@ -281,7 +295,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
           transition: "all 0.3s ease",
         }}
       >
-        Đăng bài
+        {loading ? "Đang xử lý..." : "Thêm bài viết"}
       </Button>
     </Box>
   );
