@@ -24,7 +24,7 @@ export default function HomePage() {
   const currentUserId = user?.email;
 
   return (
-    <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh" }}>
+    <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh", width: "100%" }}>
       {/* HEADER */}
       <AppBar
         position="sticky"

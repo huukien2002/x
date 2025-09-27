@@ -10,12 +10,16 @@ export default function CommentList({ comments }: { comments: any[] }) {
       <Button
         variant="text"
         size="small"
+        disabled={comments.length === 0} // disable khi không có comment
         onClick={() => setOpen(!open)}
         sx={{ mb: 1, textTransform: "none" }}
       >
-        {open ? "Ẩn bình luận" : `Xem ${comments.length} bình luận`}
+        {comments.length === 0
+          ? "Chưa có bình luận nào"
+          : open
+          ? "Ẩn bình luận"
+          : `Xem ${comments.length} bình luận`}
       </Button>
-
       {open && (
         <Box>
           {comments.map((c, idx) => (

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -38,6 +38,17 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [text, setText] = useState("");
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // 🔹 Scroll to bottom
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
   // 🔹 Load danh sách user
   useEffect(() => {
     if (!user) return;
@@ -150,9 +161,8 @@ export default function ChatPage() {
   }
 
   return (
-    <Box display={{ xs: "block", sm: "flex" }}>
-      {/* Danh sách user */}
-      <Box width={{ xs: "100%", sm: "30%" }} borderRight="1px solid #ccc">
+    <div className="flex flex-col flex-1 sm:flex-row">
+      <div className=" md:w-1/4 border-r border-gray-300 h-full w-full">
         <Typography variant="h6" p={2}>
           Users
         </Typography>
@@ -171,10 +181,8 @@ export default function ChatPage() {
             </ListItemButton>
           ))}
         </List>
-      </Box>
-
-      {/* Chat window */}
-      <Box flex={1} display="flex" flexDirection="column">
+      </div>
+      <div className="w-full md:w-3/4 h-full">
         {selectedUser ? (
           <>
             <Box p={2} borderBottom="1px solid #ccc">
@@ -185,17 +193,9 @@ export default function ChatPage() {
                 </span>
               </Typography>
             </Box>
-            <Box
-              sx={{
-                // border: "1px solid #ccc",
-                flex: 1,
-                p: 2,
-                overflow: "auto",
-                maxHeight: "calc(100vh - 200px)",
-              }}
-              flex={1}
-              p={2}
-              overflow="auto"
+            <div
+              ref={scrollRef}
+              className="h-[calc(100vh-250px)] overflow-y-scroll px-5 py-3"
             >
               {messages.map((msg, idx) => (
                 <Box
@@ -207,7 +207,6 @@ export default function ChatPage() {
                   }
                   mb={0.5}
                 >
-                  {/* Bubble chứa text */}
                   <Box
                     p={1.2}
                     borderRadius={2}
@@ -220,7 +219,6 @@ export default function ChatPage() {
                     <Typography variant="body1">{msg.text}</Typography>
                   </Box>
 
-                  {/* Thời gian gửi nằm ngoài bubble */}
                   <Typography
                     variant="caption"
                     sx={{
@@ -238,7 +236,7 @@ export default function ChatPage() {
                   </Typography>
                 </Box>
               ))}
-            </Box>
+            </div>
             <Box p={2} display="flex" gap={1}>
               <TextField
                 fullWidth
@@ -268,7 +266,125 @@ export default function ChatPage() {
             <Typography>Select a user to chat</Typography>
           </Box>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
+    // <Box display={{ xs: "block", sm: "flex" }}>
+    //   {/* Danh sách user */}
+    // <Box width={{ xs: "100%", sm: "30%" }} borderRight="1px solid #ccc">
+    //   <Typography variant="h6" p={2}>
+    //     Users
+    //   </Typography>
+    //   <Divider />
+    //   <List>
+    //     {users.map((u) => (
+    //       <ListItemButton
+    //         key={u.id}
+    //         selected={selectedUser?.id === u.id}
+    //         onClick={() => handleSelectUser(u)}
+    //       >
+    //         <ListItemAvatar>
+    //           <Avatar src={u.avatar || undefined}>{u.username?.[0]}</Avatar>
+    //         </ListItemAvatar>
+    //         <ListItemText primary={u.username} secondary={u.email} />
+    //       </ListItemButton>
+    //     ))}
+    //   </List>
+    // </Box>
+
+    //   {/* Chat window */}
+    // <Box flex={1} display="flex" flexDirection="column">
+    //   {selectedUser ? (
+    //     <>
+    //       <Box p={2} borderBottom="1px solid #ccc">
+    //         <Typography variant="h6">
+    //           Chat with{" "}
+    //           <span style={{ fontWeight: "bold", color: "#1976d2" }}>
+    //             {selectedUser.username}
+    //           </span>
+    //         </Typography>
+    //       </Box>
+    //       <Box
+    //         sx={{
+    //           // border: "1px solid #ccc",
+    //           flex: 1,
+    //           p: 2,
+    //           overflow: "auto",
+    //           maxHeight: "calc(100vh - 200px)",
+    //         }}
+    //         flex={1}
+    //         p={2}
+    //         overflow="auto"
+    //       >
+    //         {messages.map((msg, idx) => (
+    //           <Box
+    //             key={idx}
+    //             display="flex"
+    //             flexDirection="column"
+    //             alignItems={
+    //               msg.sender === user?.email ? "flex-end" : "flex-start"
+    //             }
+    //             mb={0.5}
+    //           >
+    //             <Box
+    //               p={1.2}
+    //               borderRadius={2}
+    //               bgcolor={
+    //                 msg.sender === user?.email ? "primary.main" : "grey.200"
+    //               }
+    //               color={msg.sender === user?.email ? "white" : "black"}
+    //               maxWidth="70%"
+    //             >
+    //               <Typography variant="body1">{msg.text}</Typography>
+    //             </Box>
+
+    //             <Typography
+    //               variant="caption"
+    //               sx={{
+    //                 fontSize: "0.65rem",
+    //                 opacity: 0.6,
+    //                 mt: 0.3,
+    //               }}
+    //             >
+    //               {msg.createdAt
+    //                 ? new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
+    //                     hour: "2-digit",
+    //                     minute: "2-digit",
+    //                   })
+    //                 : ""}
+    //             </Typography>
+    //           </Box>
+    //         ))}
+    //       </Box>
+    //       <Box p={2} display="flex" gap={1}>
+    //         <TextField
+    //           fullWidth
+    //           value={text}
+    //           onChange={(e) => setText(e.target.value)}
+    //           placeholder="Type a message..."
+    //           size="small"
+    //           onKeyDown={(e) => {
+    //             if (e.key === "Enter" && !e.shiftKey) {
+    //               e.preventDefault();
+    //               handleSend();
+    //             }
+    //           }}
+    //         />
+    //         <Button variant="contained" onClick={handleSend}>
+    //           Send
+    //         </Button>
+    //       </Box>
+    //     </>
+    //   ) : (
+    //     <Box
+    //       flex={1}
+    //       display="flex"
+    //       justifyContent="center"
+    //       alignItems="center"
+    //     >
+    //       <Typography>Select a user to chat</Typography>
+    //     </Box>
+    //   )}
+    // </Box>
+    // </Box>
   );
 }

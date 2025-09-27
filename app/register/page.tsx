@@ -113,7 +113,8 @@ export default function RegisterPage() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      height="100vh"
+      // height="100vh"
+      width="100%"
     >
       <Box
         width={400}
