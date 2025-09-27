@@ -96,6 +96,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
       inputRef.current.value = "";
     }
     onPostAdded();
+    window.location.reload();
   };
 
   return (

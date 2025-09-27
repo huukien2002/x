@@ -40,6 +40,7 @@ export default function CommentBox({
 
     setText("");
     onCommentAdded();
+    window.location.reload();
   };
 
   return (
