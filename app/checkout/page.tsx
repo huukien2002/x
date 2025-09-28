@@ -63,6 +63,8 @@ export default function StripeTestPage() {
     }
   };
 
+  if(!user) return null
+
   return (
     <Container maxWidth="sm">
       <Box

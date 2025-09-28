@@ -4,8 +4,10 @@ import {
   Avatar,
   Box,
   Button,
-  Divider,
   InputBase,
+  List,
+  ListItemButton,
+  ListItemText,
   Paper,
   Toolbar,
   Typography,
@@ -20,6 +22,7 @@ import Image from "next/image";
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 interface UserType {
   id: string; // uid trong Firestore
   email: string;
@@ -54,9 +57,12 @@ interface Post {
 export default function HomePage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const user = useUser();
+  const router = useRouter();
   const currentUserId = user?.email;
   const [users, setUsers] = useState<UserType[]>([]);
   const [postsTop, setPostsTop] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [querySearch, setQuerySearch] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -104,6 +110,7 @@ export default function HomePage() {
             } as Post;
           })
         );
+        setPosts(allPosts);
 
         // Sắp xếp theo số lượng comment, lấy 3 post nhiều comment nhất
         const topPosts = allPosts
@@ -118,6 +125,17 @@ export default function HomePage() {
 
     fetchPosts();
   }, []);
+
+  // Search Posts
+  const filtered = posts.filter((p) =>
+    p.title.toLowerCase().includes(querySearch.toLowerCase())
+  );
+
+  const handleSelect = (id: string) => {
+    setQuerySearch("");
+    router.push(`/posts/${id}`);
+  };
+
 
   return (
     <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh", width: "100%" }}>
@@ -140,24 +158,98 @@ export default function HomePage() {
               height={32}
             />
           </Box>
-          <Paper
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              px: 1,
-              py: 0.5,
-              borderRadius: 2,
-              mr: 2,
-              flexGrow: 2,
-              maxWidth: 400,
-            }}
-          >
-            <Search sx={{ color: "gray" }} />
-            <InputBase
-              placeholder="Tìm kiếm bài viết..."
-              sx={{ ml: 1, flex: 1 }}
-            />
-          </Paper>
+          <Box sx={{ position: "relative", maxWidth: 400, flexGrow: 2, mr: 2 }}>
+            <Paper
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                px: 1,
+                py: 0.5,
+                borderRadius: 2,
+              }}
+            >
+              <Search sx={{ color: "gray" }} />
+              <InputBase
+                placeholder="Tìm kiếm bài viết..."
+                value={querySearch}
+                onChange={(e) => setQuerySearch(e.target.value)}
+                sx={{ ml: 1, flex: 1 }}
+              />
+            </Paper>
+
+            {querySearch && (
+              <Paper
+                sx={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  mt: 1,
+                  maxHeight: 250,
+                  overflowY: "auto",
+                  borderRadius: 2,
+                  zIndex: 10,
+                }}
+              >
+                <List>
+                  {filtered.length > 0 ? (
+                    filtered.map((p) => (
+                      <ListItemButton
+                        key={p.id}
+                        onClick={() => handleSelect(p.id)}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          py: 0.5, // giảm padding dọc
+                          minHeight: 60, // chiều cao thấp hơn
+                        }}
+                      >
+                        {/* Ảnh nhỏ hơn */}
+                        {p.imageUrl && (
+                          <Box
+                            component="img"
+                            src={p.imageUrl}
+                            alt={p.title}
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              objectFit: "cover",
+                              borderRadius: 1,
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+
+                        {/* Nội dung */}
+                        <ListItemText
+                          primary={p.title}
+                          secondary={
+                            <>
+                              <span style={{ fontSize: 12, color: "gray" }}>
+                                {p.authorId} • {p.comments?.length || 0} bình
+                                luận
+                              </span>
+                            </>
+                          }
+                          primaryTypographyProps={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                          }}
+                          secondaryTypographyProps={{ fontSize: 12 }}
+                        />
+                      </ListItemButton>
+                    ))
+                  ) : (
+                    <Box p={2} textAlign="center">
+                      Không tìm thấy bài viết
+                    </Box>
+                  )}
+                </List>
+              </Paper>
+            )}
+          </Box>
+
           <Avatar
             sx={{ bgcolor: deepPurple[500], width: 36, height: 36 }}
             src={user?.avatar}
