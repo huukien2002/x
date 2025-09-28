@@ -113,6 +113,8 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
     }
   };
 
+  if(!user) return null
+
   return (
     <Box
       sx={{

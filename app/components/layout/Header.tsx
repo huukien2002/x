@@ -76,7 +76,7 @@ const Header = () => {
     <AppBar position="static" color="primary">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="h6" component="div">
-          Collection
+          Blog
         </Typography>
 
         {/* Desktop menu */}

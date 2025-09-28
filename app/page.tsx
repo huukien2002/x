@@ -17,19 +17,46 @@ import { useUser } from "@/hooks/useUser";
 import PostForm from "./components/post/PostForm";
 import PostList from "./components/post/PostList";
 import Image from "next/image";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
+import Link from "next/link";
 interface UserType {
   id: string; // uid trong Firestore
   email: string;
   username: string;
   avatar?: string | null;
 }
+
+interface User {
+  id: string;
+  username: string;
+  avatar: string;
+}
+interface Comment {
+  id: string;
+  text: string;
+  user: User;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  thrilled: string;
+  imageUrl: string;
+  author: User;
+  comments: Comment[];
+  sent: boolean;
+  createdAt: string | number;
+  favorite: boolean;
+  visible: boolean;
+  authorId: string;
+}
 export default function HomePage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const user = useUser();
   const currentUserId = user?.email;
   const [users, setUsers] = useState<UserType[]>([]);
+  const [postsTop, setPostsTop] = useState<Post[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -47,6 +74,50 @@ export default function HomePage() {
     };
     fetchUsers();
   }, [user]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        // Lấy tất cả posts, sắp xếp theo thời gian tạo (mới nhất trước)
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+
+        const allPosts: Post[] = await Promise.all(
+          snap.docs.map(async (doc) => {
+            const postData = doc.data();
+            const postId = doc.id;
+
+            // Lấy comments cho từng post
+            const commentsSnap = await getDocs(
+              collection(db, "posts", postId, "comments")
+            );
+
+            const comments = commentsSnap.docs.map((c) => ({
+              id: c.id,
+              ...c.data(),
+            }));
+
+            return {
+              id: postId,
+              ...postData,
+              comments,
+            } as Post;
+          })
+        );
+
+        // Sắp xếp theo số lượng comment, lấy 3 post nhiều comment nhất
+        const topPosts = allPosts
+          .sort((a, b) => b.comments.length - a.comments.length)
+          .slice(0, 3);
+
+        setPostsTop(topPosts);
+      } catch (error) {
+        console.error("Lỗi khi lấy posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   return (
     <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh", width: "100%" }}>
@@ -172,16 +243,59 @@ export default function HomePage() {
             display: { xs: "none", md: "block" }, // ẩn trên mobile
           }}
         >
-          <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Top bài viết 📌
-            </Typography>
-            {[1, 2, 3].map((i) => (
-              <Typography key={i} sx={{ mb: 1 }}>
-                ⭐ Bài viết nổi bật {i}
-              </Typography>
-            ))}
-          </Paper>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            Post sôi nổi 📌{" "}
+          </Typography>
+          {postsTop.map((post, i) => {
+            const starCount = 3 - i; // top1 = 3 sao, top2 = 2 sao, top3 = 1 sao
+            const stars = "⭐".repeat(starCount);
+
+            return (
+              <Link key={post.id} href={`/posts/${post.id}`} passHref>
+                <Box
+                  component="a"
+                  sx={{
+                    mb: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    padding: 1,
+                    borderRadius: 2,
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: "#e2e5f1ff",
+                    },
+                  }}
+                >
+                  <Box>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {/* Sao KHÔNG gạch chân */}
+                      <Typography fontWeight="bold">{stars}</Typography>
+
+                      {/* Title CÓ gạch chân xanh */}
+                      <Typography
+                        fontWeight="bold"
+                        sx={{
+                          color: "primary.main",
+                          textDecoration: "underline",
+                          textDecorationColor: "primary.main",
+                          textUnderlineOffset: "3px",
+                        }}
+                      >
+                        {post.title ?? "Bài viết nổi bật"}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        (comments: {post?.comments.length})
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {post?.authorId}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Link>
+            );
+          })}
 
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
