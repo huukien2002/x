@@ -136,7 +136,6 @@ export default function HomePage() {
     router.push(`/posts/${id}`);
   };
 
-
   return (
     <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh", width: "100%" }}>
       {/* HEADER */}
@@ -249,13 +248,24 @@ export default function HomePage() {
               </Paper>
             )}
           </Box>
-
-          <Avatar
-            sx={{ bgcolor: deepPurple[500], width: 36, height: 36 }}
-            src={user?.avatar}
-          >
-            {user?.username?.[0] || "U"}
-          </Avatar>
+          {user && (
+            <Link
+              href={`/profile`}
+              style={{ textDecoration: "none" }}
+            >
+              <Avatar
+                sx={{
+                  bgcolor: deepPurple[500],
+                  width: 36,
+                  height: 36,
+                  cursor: "pointer",
+                }}
+                src={user?.avatar}
+              >
+                {user?.username?.[0] || "U"}
+              </Avatar>
+            </Link>
+          )}
         </Toolbar>
       </AppBar>
 
