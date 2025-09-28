@@ -110,7 +110,7 @@ export default function PostCard({
             alt={post.title}
             style={{
               width: "100%",
-              maxHeight: 200,
+              maxHeight: 300,
               objectFit: "cover",
               borderRadius: "8px",
             }}
