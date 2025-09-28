@@ -1,19 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../lib/firebase.config";
-import {
-  collection,
-  query,
-  orderBy,
-  getDocs,
-  where,
-  limit,
-  startAfter,
-  DocumentData,
-  QueryDocumentSnapshot,
-} from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import PostCard from "./PostCard";
-import { Button, Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 
 interface User {
   id: string;
@@ -45,13 +35,12 @@ interface PostListProps {
 
 export default function PostList({ currentUserId, refreshKey }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [lastDoc, setLastDoc] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const PAGE_SIZE = 3;
 
+  // Lấy user từ email
   const getUserByEmail = async (email: string): Promise<User> => {
     const userQ = query(collection(db, "users"), where("email", "==", email));
     const snap = await getDocs(userQ);
@@ -67,45 +56,19 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
     return { id: "", username: "Unknown", avatar: "" };
   };
 
-  const fetchPosts = async (isNextPage = false) => {
+  // Load tất cả posts
+  const fetchPosts = async () => {
     if (loading) return;
     setLoading(true);
 
     try {
-      let postsData: Post[] = [];
-      let fetchCount = 0;
-      let nextDoc = lastDoc ?? null;
+      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(q);
 
-      while (postsData.length < PAGE_SIZE) {
-        // Tính số post cần fetch thêm
-        const remaining = PAGE_SIZE - postsData.length;
-        let q;
-
-        if (!nextDoc) {
-          q = query(
-            collection(db, "posts"),
-            orderBy("createdAt", "desc"),
-            limit(remaining + 5) // fetch dư để lọc
-          );
-        } else {
-          q = query(
-            collection(db, "posts"),
-            orderBy("createdAt", "desc"),
-            startAfter(nextDoc),
-            limit(remaining + 5)
-          );
-        }
-
-        const snap = await getDocs(q);
-
-        if (snap.empty) {
-          setHasMore(false);
-          break;
-        }
-
-        for (const docSnap of snap.docs) {
+      const postsData: (Post | null)[] = await Promise.all(
+        snap.docs.map(async (docSnap) => {
           const postData = docSnap.data();
-          if (!postData.visible) continue; // lọc tại client
+          if (!postData.visible) return null;
 
           const author = await getUserByEmail(postData.authorId);
 
@@ -120,7 +83,7 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
             })
           );
 
-          postsData.push({
+          return {
             id: docSnap.id,
             title: postData.title,
             thrilled: postData.thrilled,
@@ -131,20 +94,12 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
             comments,
             favorite: postData.favorite ?? false,
             visible: postData.visible ?? true,
-          });
+          } as Post;
+        })
+      );
 
-          if (postsData.length >= PAGE_SIZE) break; // đủ số post
-        }
-
-        nextDoc = snap.docs[snap.docs.length - 1];
-        fetchCount += snap.docs.length;
-
-        // Nếu fetch hết mà vẫn không đủ, dừng
-        if (snap.docs.length === 0) break;
-      }
-
-      setPosts((prev) => (isNextPage ? [...prev, ...postsData] : postsData));
-      setLastDoc(nextDoc);
+      setPosts(postsData.filter((p): p is Post => p !== null));
+      setCurrentPage(1); // reset về trang đầu
     } catch (err) {
       console.error("Error fetching posts:", err);
     } finally {
@@ -156,25 +111,49 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
     fetchPosts();
   }, [refreshKey]);
 
+  // Tính phân trang
+  const totalPages = Math.ceil(posts.length / PAGE_SIZE);
+  const paginatedPosts = posts.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   return (
     <Box sx={{ paddingBottom: 5, mt: 2 }}>
-      {posts.map((post) => (
+      {paginatedPosts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
           currentUserId={currentUserId}
-          onRefresh={() => fetchPosts(false)}
+          onRefresh={fetchPosts}
         />
       ))}
 
-      {hasMore && (
-        <Box textAlign="center" mt={2}>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Box py={2} display="flex" justifyContent="center" mt={3} gap={1}>
           <Button
-            variant="outlined"
-            onClick={() => fetchPosts(true)}
-            disabled={loading}
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
           >
-            {loading ? "Đang tải..." : "Xem thêm"}
+            Prev
+          </Button>
+
+          {[...Array(totalPages)].map((_, idx) => (
+            <Button
+              key={idx}
+              variant={currentPage === idx + 1 ? "contained" : "outlined"}
+              onClick={() => setCurrentPage(idx + 1)}
+            >
+              {idx + 1}
+            </Button>
+          ))}
+
+          <Button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+          >
+            Next
           </Button>
         </Box>
       )}

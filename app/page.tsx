@@ -12,16 +12,41 @@ import {
 } from "@mui/material";
 import { deepPurple } from "@mui/material/colors";
 import { Search, AddPhotoAlternate } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/useUser";
 import PostForm from "./components/post/PostForm";
 import PostList from "./components/post/PostList";
 import Image from "next/image";
-
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase.config";
+interface UserType {
+  id: string; // uid trong Firestore
+  email: string;
+  username: string;
+  avatar?: string | null;
+}
 export default function HomePage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const user = useUser();
   const currentUserId = user?.email;
+  const [users, setUsers] = useState<UserType[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchUsers = async () => {
+      const snapshot = await getDocs(collection(db, "users"));
+      const list: UserType[] = [];
+      snapshot.forEach((doc) => {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const data = doc.data() as any;
+        if (data.email !== user.email) {
+          list.push({ id: doc.id, ...data });
+        }
+      });
+      setUsers(list);
+    };
+    fetchUsers();
+  }, [user]);
 
   return (
     <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh", width: "100%" }}>
@@ -109,15 +134,23 @@ export default function HomePage() {
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Gợi ý bạn bè 👥
             </Typography>
-            {[1, 2, 3].map((i) => (
-              <Box
-                key={i}
-                sx={{ display: "flex", alignItems: "center", mb: 2 }}
-              >
-                <Avatar sx={{ mr: 2 }} />
-                <Typography>User {i}</Typography>
-              </Box>
-            ))}
+
+            <Box sx={{ maxHeight: 280, overflowY: "auto", pr: 1 }}>
+              {users?.map((user) => (
+                <Box
+                  key={user.id}
+                  sx={{ display: "flex", alignItems: "center", mb: 2 }}
+                >
+                  <Avatar src={user.avatar ?? ""} sx={{ mr: 2 }} />
+                  <Box>
+                    <Typography>{user.username}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {user.email}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
           </Paper>
         </Box>
 
