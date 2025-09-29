@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChatIcon from "@mui/icons-material/Chat";
-import GroupIcon from '@mui/icons-material/Group';
+import GroupIcon from "@mui/icons-material/Group";
 // Firebase
 import { ref, onValue, off } from "firebase/database";
 import { db, rtdb } from "@/lib/firebase.config";
@@ -38,6 +38,33 @@ const Header = () => {
     const storedUser = localStorage.getItem("user");
     setUser(storedUser ? JSON.parse(storedUser) : null);
   };
+
+  useEffect(() => {
+    let originalTitle = "Blog";
+    let interval: number | null = null;
+
+    const getNotificationTitle = () => {
+      if (hasUnread && hasFriendRequest) return "[Msg] [Req]";
+      if (hasUnread) return "[Msg]";
+      if (hasFriendRequest) return "[Req]";
+      return originalTitle;
+    };
+
+    if (hasUnread || hasFriendRequest) {
+      let show = true;
+      interval = window.setInterval(() => {
+        // <-- dùng window.setInterval
+        document.title = show ? getNotificationTitle() : originalTitle;
+        show = !show;
+      }, 1000);
+    } else {
+      document.title = originalTitle;
+    }
+
+    return () => {
+      if (interval !== null) window.clearInterval(interval);
+    };
+  }, [hasUnread, hasFriendRequest]);
 
   useEffect(() => {
     loadUser();
@@ -110,7 +137,7 @@ const Header = () => {
           label: "Friends",
           href: "/friends",
           icon: hasFriendRequest && (
-             <Badge
+            <Badge
               color="error"
               variant="dot"
               invisible={!hasFriendRequest}
@@ -123,7 +150,7 @@ const Header = () => {
         {
           label: "Chat",
           href: "/chat",
-          icon:hasUnread && (
+          icon: hasUnread && (
             <Badge
               color="error"
               variant="dot"
