@@ -11,6 +11,7 @@ import {
 import { MoreVert } from "@mui/icons-material";
 import CommentBox from "./CommentBox";
 import CommentList from "./CommentList";
+import { useUser } from "@/hooks/useUser";
 
 interface User {
   id: string;
@@ -46,6 +47,7 @@ export default function PostCard({
   currentUserId,
   onRefresh,
 }: PostCardProps) {
+  const user = useUser();
   // Convert createdAt sang Date
   const createdDate =
     typeof post.createdAt === "number"
@@ -146,13 +148,15 @@ export default function PostCard({
           </Box>
 
           {/* Comment form (luôn hiện) */}
-          <Box mt={1}>
-            <CommentBox
-              postId={post.id}
-              userId={currentUserId}
-              onCommentAdded={onRefresh}
-            />
-          </Box>
+          {user && (
+            <Box mt={1}>
+              <CommentBox
+                postId={post.id}
+                userId={currentUserId}
+                onCommentAdded={onRefresh}
+              />
+            </Box>
+          )}
         </Box>
       </CardContent>
     </Card>
