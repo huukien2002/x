@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
       </Typography>
 
       <Typography variant="body2" align="left" color="warning.main" mb={2}>
-        Chỉ tài khoản đăng ký thủ công mới có thể reset password
+        Chỉ tài khoản đăng ký thủ công (không Google) mới có thể reset password.
       </Typography>
 
       <TextField
