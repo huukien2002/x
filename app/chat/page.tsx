@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useUser } from "@/hooks/useUser";
 import { db as fsDb, rtdb } from "@/lib/firebase.config";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { ref, get, set, push, onValue, off, update } from "firebase/database";
 
 interface UserType {
@@ -52,22 +52,61 @@ export default function ChatPage() {
     }
   }, [messages]);
 
-  // 🔹 Load danh sách user
   useEffect(() => {
     if (!user) return;
-    const fetchUsers = async () => {
-      const snapshot = await getDocs(collection(fsDb, "users"));
-      const list: UserType[] = [];
-      snapshot.forEach((doc) => {
-        /* eslint-disable @typescript-eslint/no-explicit-any */
+
+    const fetchFriends = async () => {
+      // 1. Lấy tất cả friendships có status=accepted mà mình là from hoặc to
+      const q1 = query(
+        collection(fsDb, "friendships"),
+        where("status", "==", "accepted"),
+        where("from", "==", user.email)
+      );
+      const q2 = query(
+        collection(fsDb, "friendships"),
+        where("status", "==", "accepted"),
+        where("to", "==", user.email)
+      );
+
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+      const friendEmails: string[] = [];
+
+      snap1.forEach((doc) => {
         const data = doc.data() as any;
-        if (data.email !== user.email) {
-          list.push({ id: doc.id, ...data });
-        }
+        friendEmails.push(data.to); // mình là from → bạn là to
       });
-      setUsers(list);
+      snap2.forEach((doc) => {
+        const data = doc.data() as any;
+        friendEmails.push(data.from); // mình là to → bạn là from
+      });
+
+      // 2. Lấy user info theo email
+      if (friendEmails.length > 0) {
+        const chunks = [];
+        for (let i = 0; i < friendEmails.length; i += 10) {
+          chunks.push(friendEmails.slice(i, i + 10));
+        }
+
+        const allUsers: UserType[] = [];
+        for (const chunk of chunks) {
+          const qUsers = query(
+            collection(fsDb, "users"),
+            where("email", "in", chunk)
+          );
+          const usersSnap = await getDocs(qUsers);
+          usersSnap.forEach((doc) => {
+            allUsers.push({ id: doc.id, ...(doc.data() as any) });
+          });
+        }
+
+        setUsers(allUsers);
+      } else {
+        setUsers([]);
+      }
     };
-    fetchUsers();
+
+    fetchFriends();
   }, [user]);
 
   // 🔹 Lắng nghe tin nhắn realtime
@@ -150,6 +189,24 @@ export default function ChatPage() {
   //   setText("");
   // };
 
+  // 🔹 Load danh sách user
+  // useEffect(() => {
+  //   if (!user) return;
+  //   const fetchUsers = async () => {
+  //     const snapshot = await getDocs(collection(fsDb, "users"));
+  //     const list: UserType[] = [];
+  //     snapshot.forEach((doc) => {
+  //       /* eslint-disable @typescript-eslint/no-explicit-any */
+  //       const data = doc.data() as any;
+  //       if (data.email !== user.email) {
+  //         list.push({ id: doc.id, ...data });
+  //       }
+  //     });
+  //     setUsers(list);
+  //   };
+  //   fetchUsers();
+  // }, [user]);
+
   const handleSelectUser = async (other: UserType) => {
     if (!user) return;
     setSelectedUser(other);
@@ -199,7 +256,6 @@ export default function ChatPage() {
       setRoomId(newRoomRef.key);
     }
   };
-
   // 🔹 Gửi tin nhắn
   const handleSend = async () => {
     if (!user || !selectedUser || !roomId || !text.trim()) return;

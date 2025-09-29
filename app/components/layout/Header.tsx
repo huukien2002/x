@@ -87,6 +87,7 @@ const Header = () => {
         { label: "Home", href: "/" },
         { label: "Profile", href: "/profile" },
         { label: "Checkout", href: "/checkout" },
+        { label: "Friends", href: "/friends" },
         {
           label: "Chat",
           href: "/chat",
