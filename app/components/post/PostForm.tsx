@@ -54,7 +54,13 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
       toast.error("Bạn đã hết lượt thêm bài viết.");
       return;
     }
+
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn ảnh đúng định dạng");
+      return;
+    }
 
     try {
       setLoading(true); // bắt đầu submit
