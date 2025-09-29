@@ -65,6 +65,13 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
             await updateDoc(userDoc.ref, {
               postsRemaining: increment(amount),
             });
+
+            const updated = await getDoc(userDoc.ref);
+
+            localStorage.setItem(
+              "user",
+              JSON.stringify({ id: userDoc.id, ...updated.data() })
+            );
           }
 
           await updateDoc(txRef, {

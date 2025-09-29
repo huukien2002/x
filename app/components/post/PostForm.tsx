@@ -5,6 +5,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   increment,
   query,
@@ -95,6 +96,13 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
         postsRemaining: increment(-1),
       });
 
+      // ✅ Lấy lại dữ liệu mới nhất của user sau khi update
+      const updatedSnap = await getDoc(doc(db, "users", userDoc.id));
+      const updatedUser = { id: userDoc.id, ...updatedSnap.data() };
+
+      // Lưu vào localStorage
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
       toast.success("Thêm bài viết thành công!");
 
       setTitle("");
@@ -113,7 +121,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
     }
   };
 
-  if(!user) return null
+  if (!user) return null;
 
   return (
     <Box
