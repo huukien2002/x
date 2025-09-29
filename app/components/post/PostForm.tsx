@@ -112,7 +112,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
         inputRef.current.value = "";
       }
       onPostAdded();
-      window.location.reload();
+      // window.location.reload();
     } catch (err) {
       toast.error("Có lỗi xảy ra khi thêm bài viết");
       console.error(err);
