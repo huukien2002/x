@@ -87,8 +87,8 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
         imageUrl: data.secure_url,
         createdAt: Date.now(),
         sent: false,
-        favorite: true,
-        visible: true,
+        favorite: false,
+        visible: false,
       });
 
       // 🔥 Trừ postsRemaining trong users
