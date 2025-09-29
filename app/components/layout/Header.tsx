@@ -11,8 +11,14 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Badge,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import ChatIcon from "@mui/icons-material/Chat";
+
+// Firebase
+import { ref, onValue, off } from "firebase/database";
+import { rtdb } from "@/lib/firebase.config";
 
 interface User {
   name: string;
@@ -22,6 +28,7 @@ interface User {
 const Header = () => {
   const [user, setUser] = useState<User | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [hasUnread, setHasUnread] = useState(false);
   const router = useRouter();
 
   const loadUser = () => {
@@ -30,21 +37,41 @@ const Header = () => {
   };
 
   useEffect(() => {
-    loadUser(); // chạy lần đầu
-
-    // lắng nghe cả storage (multi-tab) và custom event (same tab)
+    loadUser();
     window.addEventListener("storage", loadUser);
     window.addEventListener("userChanged", loadUser);
-
     return () => {
       window.removeEventListener("storage", loadUser);
       window.removeEventListener("userChanged", loadUser);
     };
   }, []);
 
+  // 🔹 Lắng nghe rooms để check unread
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const roomsRef = ref(rtdb, "rooms");
+    const unsubscribe = onValue(roomsRef, (snap) => {
+      const data = snap.val();
+      if (!data) {
+        setHasUnread(false);
+        return;
+      }
+
+      const rooms = Object.values<any>(data);
+      const found = rooms.some(
+        (room: any) =>
+          Array.isArray(room.unreadBy) &&
+          room.unreadBy.includes(user.email)
+      );
+      setHasUnread(found);
+    });
+
+    return () => off(roomsRef);
+  }, [user?.email]);
+
   const handleLogout = () => {
     localStorage.removeItem("user");
-    // 🔥 bắn custom event cho cùng tab
     window.dispatchEvent(new Event("userChanged"));
     router.push("/login");
     handleMenuClose();
@@ -53,17 +80,27 @@ const Header = () => {
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const handleMenuClose = () => setAnchorEl(null);
 
   const menuItems = user
     ? [
         { label: "Home", href: "/" },
         { label: "Profile", href: "/profile" },
         { label: "Checkout", href: "/checkout" },
-        { label: "Chat", href: "/chat" },
+        {
+          label: "Chat",
+          href: "/chat",
+          icon: (
+            <Badge
+              color="error"
+              variant="dot"
+              invisible={!hasUnread}
+              overlap="circular"
+            >
+              <ChatIcon />
+            </Badge>
+          ),
+        },
         { label: "Logout", onClick: handleLogout },
       ]
     : [
@@ -83,7 +120,12 @@ const Header = () => {
         <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
           {menuItems.map((item) =>
             item.href ? (
-              <Button key={item.label} color="inherit" href={item.href}>
+              <Button
+                key={item.label}
+                color="inherit"
+                href={item.href}
+                startIcon={item.icon}
+              >
                 {item.label}
               </Button>
             ) : (
@@ -112,7 +154,8 @@ const Header = () => {
                   component="a"
                   href={item.href}
                 >
-                  {item.label}
+                  {item.icon}
+                  <Typography sx={{ ml: 1 }}>{item.label}</Typography>
                 </MenuItem>
               ) : (
                 <MenuItem key={item.label} onClick={item.onClick}>

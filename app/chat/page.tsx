@@ -11,6 +11,7 @@ import {
   TextField,
   Button,
   Divider,
+  Badge,
 } from "@mui/material";
 import { useUser } from "@/hooks/useUser";
 import { db as fsDb, rtdb } from "@/lib/firebase.config";
@@ -37,6 +38,7 @@ export default function ChatPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [text, setText] = useState("");
+  const [rooms, setRooms] = useState<any[]>([]);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -49,6 +51,7 @@ export default function ChatPage() {
       });
     }
   }, [messages]);
+
   // 🔹 Load danh sách user
   useEffect(() => {
     if (!user) return;
@@ -66,44 +69,6 @@ export default function ChatPage() {
     };
     fetchUsers();
   }, [user]);
-
-  // 🔹 Khi chọn user để chat
-  const handleSelectUser = async (other: UserType) => {
-    if (!user) return;
-    setSelectedUser(other);
-
-    // Check trong rooms xem có room giữa 2 email chưa
-    const roomsRef = ref(rtdb, "rooms");
-    const snapshot = await get(roomsRef);
-
-    let existingRoomId: string | null = null;
-
-    if (snapshot.exists()) {
-      const allRooms = snapshot.val();
-      for (const [rid, room] of Object.entries<any>(allRooms)) {
-        if (
-          (room.sender === user.email && room.receiver === other.email) ||
-          (room.sender === other.email && room.receiver === user.email)
-        ) {
-          existingRoomId = rid;
-          break;
-        }
-      }
-    }
-
-    if (existingRoomId) {
-      setRoomId(existingRoomId);
-    } else {
-      // Tạo room mới
-      const newRoomRef = push(roomsRef);
-      await set(newRoomRef, {
-        sender: user.email,
-        receiver: other.email,
-        createdAt: Date.now(),
-      });
-      setRoomId(newRoomRef.key);
-    }
-  };
 
   // 🔹 Lắng nghe tin nhắn realtime
   useEffect(() => {
@@ -125,6 +90,116 @@ export default function ChatPage() {
     };
   }, [roomId]);
 
+  // 🔹 Khi chọn user để chat
+  // const handleSelectUser = async (other: UserType) => {
+  //   if (!user) return;
+  //   setSelectedUser(other);
+
+  //   // Check trong rooms xem có room giữa 2 email chưa
+  //   const roomsRef = ref(rtdb, "rooms");
+  //   const snapshot = await get(roomsRef);
+
+  //   let existingRoomId: string | null = null;
+
+  //   if (snapshot.exists()) {
+  //     const allRooms = snapshot.val();
+  //     for (const [rid, room] of Object.entries<any>(allRooms)) {
+  //       if (
+  //         (room.sender === user.email && room.receiver === other.email) ||
+  //         (room.sender === other.email && room.receiver === user.email)
+  //       ) {
+  //         existingRoomId = rid;
+  //         break;
+  //       }
+  //     }
+  //   }
+
+  //   if (existingRoomId) {
+  //     setRoomId(existingRoomId);
+  //   } else {
+  //     // Tạo room mới
+  //     const newRoomRef = push(roomsRef);
+  //     await set(newRoomRef, {
+  //       sender: user.email,
+  //       receiver: other.email,
+  //       createdAt: Date.now(),
+  //     });
+  //     setRoomId(newRoomRef.key);
+  //   }
+  // };
+
+  // 🔹 Gửi tin nhắn
+  // const handleSend = async () => {
+  //   if (!user || !selectedUser || !roomId || !text.trim()) return;
+
+  //   const msgRef = push(ref(rtdb, `chats/${roomId}`));
+  //   await set(msgRef, {
+  //     sender: user.email,
+  //     text,
+  //     createdAt: Date.now(),
+  //   });
+
+  //   // Cập nhật lastMessage trong rooms
+  //   const roomRef = ref(rtdb, `rooms/${roomId}`);
+  //   await update(roomRef, {
+  //     lastMessage: text,
+  //     lastSender: user.email,
+  //     updatedAt: Date.now(),
+  //   });
+
+  //   setText("");
+  // };
+
+  const handleSelectUser = async (other: UserType) => {
+    if (!user) return;
+    setSelectedUser(other);
+
+    const roomsRef = ref(rtdb, "rooms");
+    const snapshot = await get(roomsRef);
+
+    let existingRoomId: string | null = null;
+
+    if (snapshot.exists()) {
+      const allRooms = snapshot.val();
+      for (const [rid, room] of Object.entries<any>(allRooms)) {
+        if (
+          (room.sender === user.email && room.receiver === other.email) ||
+          (room.sender === other.email && room.receiver === user.email)
+        ) {
+          existingRoomId = rid;
+          break;
+        }
+      }
+    }
+
+    if (existingRoomId) {
+      setRoomId(existingRoomId);
+
+      // 🔹 Đánh dấu đã đọc
+      const roomRef = ref(rtdb, `rooms/${existingRoomId}`);
+      const snap = await get(roomRef);
+      if (snap.exists()) {
+        const roomData = snap.val();
+        const unreadBy: string[] = Array.isArray(roomData?.unreadBy)
+          ? roomData.unreadBy
+          : [];
+        const newUnreadBy = unreadBy.filter((u) => u !== user.email);
+
+        await update(roomRef, { unreadBy: newUnreadBy });
+      }
+    } else {
+      // Tạo room mới
+      const newRoomRef = push(roomsRef);
+      await set(newRoomRef, {
+        sender: user.email,
+        receiver: other.email,
+        createdAt: Date.now(),
+        unreadBy: [], // luôn tạo mới có unreadBy
+      });
+      setRoomId(newRoomRef.key);
+    }
+  };
+
   // 🔹 Gửi tin nhắn
   const handleSend = async () => {
     if (!user || !selectedUser || !roomId || !text.trim()) return;
@@ -138,13 +213,54 @@ export default function ChatPage() {
 
     // Cập nhật lastMessage trong rooms
     const roomRef = ref(rtdb, `rooms/${roomId}`);
+    const snap = await get(roomRef);
+    const roomData = snap.val();
+
+    // Nếu chưa có unreadBy thì tạo mảng mới
+    let unreadBy: string[] = Array.isArray(roomData?.unreadBy)
+      ? roomData.unreadBy
+      : [];
+
+    // Thêm receiver vào unreadBy nếu chưa có
+    if (!unreadBy.includes(selectedUser.email)) {
+      unreadBy.push(selectedUser.email);
+    }
+
     await update(roomRef, {
       lastMessage: text,
       lastSender: user.email,
       updatedAt: Date.now(),
+      unreadBy,
     });
 
     setText("");
+  };
+
+  useEffect(() => {
+    const roomsRef = ref(rtdb, "rooms");
+    const unsubscribe = onValue(roomsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const allRooms = snapshot.val();
+        const list = Object.entries(allRooms).map(([id, room]) => ({
+          id,
+          ...(room as any),
+        }));
+        setRooms(list);
+      } else {
+        setRooms([]);
+      }
+    });
+
+    return () => off(roomsRef);
+  }, []);
+
+  const findRoomWithUser = (otherEmail: string) => {
+    if (!user) return null;
+    return rooms.find(
+      (room) =>
+        (room.sender === user.email && room.receiver === otherEmail) ||
+        (room.sender === otherEmail && room.receiver === user.email)
+    );
   };
 
   if (!user) {
@@ -169,7 +285,7 @@ export default function ChatPage() {
         </div>
 
         {/* Danh sách user scroll */}
-        <div className="h-[calc(100vh-200px)] overflow-y-auto">
+        {/* <div className="h-[calc(100vh-200px)] overflow-y-auto">
           {users.map((u) => (
             <button
               key={u.id}
@@ -191,6 +307,66 @@ export default function ChatPage() {
               </div>
             </button>
           ))}
+        </div> */}
+
+        <div className="h-[calc(100vh-200px)] overflow-y-auto">
+          <List disablePadding>
+            {users.map((u) => {
+              const room = findRoomWithUser(u.email);
+              const hasNew = room?.unreadBy?.includes(user.email);
+
+              return (
+                <ListItemButton
+                  key={u.id}
+                  selected={selectedUser?.id === u.id}
+                  onClick={() => handleSelectUser(u)}
+                  sx={{
+                    "&.Mui-selected": {
+                      backgroundColor: "action.selected",
+                    },
+                    "&:hover": {
+                      backgroundColor: "action.hover",
+                    },
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Badge
+                      overlap="circular"
+                      variant="dot"
+                      color="error"
+                      invisible={!hasNew}
+                      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                      sx={{
+                        "& .MuiBadge-dot": {
+                          height: 15,
+                          minWidth: 15,
+                          borderRadius: "50%",
+                          border: "2px solid white", // tạo viền trắng giống Messenger
+                        },
+                      }}
+                    >
+                      <Avatar src={u.avatar || undefined}>
+                        {u.username?.[0]}
+                      </Avatar>
+                    </Badge>
+                  </ListItemAvatar>
+
+                  <ListItemText
+                    primary={u.username}
+                    secondary={u.email}
+                    primaryTypographyProps={{
+                      fontSize: "0.9rem",
+                      fontWeight: 500,
+                    }}
+                    secondaryTypographyProps={{
+                      fontSize: "0.75rem",
+                      color: "text.secondary",
+                    }}
+                  />
+                </ListItemButton>
+              );
+            })}
+          </List>
         </div>
       </div>
 
@@ -275,11 +451,10 @@ export default function ChatPage() {
             justifyContent="center"
             alignItems="center"
           >
-            <Typography sx={{mt: 2}}>Select a user to chat</Typography>
+            <Typography sx={{ mt: 2 }}>Select a user to chat</Typography>
           </Box>
         )}
       </div>
     </div>
-
   );
 }
