@@ -15,10 +15,11 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChatIcon from "@mui/icons-material/Chat";
-
+import GroupIcon from '@mui/icons-material/Group';
 // Firebase
 import { ref, onValue, off } from "firebase/database";
-import { rtdb } from "@/lib/firebase.config";
+import { db, rtdb } from "@/lib/firebase.config";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
 interface User {
   name: string;
@@ -29,6 +30,8 @@ const Header = () => {
   const [user, setUser] = useState<User | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [hasUnread, setHasUnread] = useState(false);
+  const [hasFriendRequest, setHasFriendRequest] = useState(false);
+
   const router = useRouter();
 
   const loadUser = () => {
@@ -61,13 +64,29 @@ const Header = () => {
       const rooms = Object.values<any>(data);
       const found = rooms.some(
         (room: any) =>
-          Array.isArray(room.unreadBy) &&
-          room.unreadBy.includes(user.email)
+          Array.isArray(room.unreadBy) && room.unreadBy.includes(user.email)
       );
       setHasUnread(found);
     });
 
     return () => off(roomsRef);
+  }, [user?.email]);
+
+  // ✅ Lắng nghe lời mời kết bạn
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const q = query(
+      collection(db, "friendships"),
+      where("to", "==", user.email),
+      where("status", "==", "pending")
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      setHasFriendRequest(!snap.empty);
+    });
+
+    return () => unsubscribe();
   }, [user?.email]);
 
   const handleLogout = () => {
@@ -87,11 +106,24 @@ const Header = () => {
         { label: "Home", href: "/" },
         { label: "Profile", href: "/profile" },
         { label: "Checkout", href: "/checkout" },
-        { label: "Friends", href: "/friends" },
+        {
+          label: "Friends",
+          href: "/friends",
+          icon: hasFriendRequest && (
+             <Badge
+              color="error"
+              variant="dot"
+              invisible={!hasFriendRequest}
+              overlap="circular"
+            >
+              <GroupIcon />
+            </Badge>
+          ),
+        },
         {
           label: "Chat",
           href: "/chat",
-          icon: (
+          icon:hasUnread && (
             <Badge
               color="error"
               variant="dot"
