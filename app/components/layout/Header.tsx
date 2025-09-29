@@ -140,6 +140,7 @@ const Header = () => {
         { label: "Home", href: "/" },
         { label: "Login", href: "/login" },
         { label: "Register", href: "/register" },
+        { label: "Reset Password", href: "/reset-password" },
       ];
 
   return (
