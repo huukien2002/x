@@ -67,36 +67,6 @@ export default function PostCard({
       ? new Date(post.createdAt)
       : new Date(post.createdAt);
 
-  // const handleShare = () => {
-  //   const FB = (window as any).FB;
-
-  //   if (!FB) {
-  //     console.error("Facebook SDK chưa load xong");
-  //     return;
-  //   }
-
-  //   FB.ui(
-  //     {
-  //       method: "share",
-  //       href: `https://x-fe7d.vercel.app/posts/${post.id}`,
-  //     },
-  //     () => {
-  //       // Không check response nữa
-  //       console.log("✅ Share popup đã mở, ghi nhận share");
-  //       saveShareToFirestore();
-  //     }
-  //   );
-  // };
-
-  // // Tách async riêng
-  // async function saveShareToFirestore() {
-  //   const postRef = doc(db, "posts", post.id);
-  //   await updateDoc(postRef, {
-  //     shareCount: increment(1),
-  //   });
-  //   onRefresh()
-  // }
-
   const handleShare = () => {
     const FB = (window as any).FB;
 
@@ -110,30 +80,23 @@ export default function PostCard({
         method: "share",
         href: `https://x-fe7d.vercel.app/posts/${post.id}`,
       },
-      (response: any) => {
-        // ✅ callback sync
-        if (response && !response.error_message) {
-          console.log("✅ Share thành công");
-          saveShareToFirestore(); // gọi async function nhưng không để async ở đây
-        } else {
-          console.log("❌ Share bị hủy hoặc lỗi", response);
-        }
+      () => {
+        // Không check response nữa
+        console.log("✅ Share popup đã mở, ghi nhận share");
+        saveShareToFirestore();
       }
     );
   };
 
-  // Chỉ tăng +1, không reset
+  // Tách async riêng
   async function saveShareToFirestore() {
-    try {
-      const postRef = doc(db, "posts", post.id);
-      await updateDoc(postRef, {
-        shareCount: increment(1),
-      });
-      onRefresh();
-    } catch (err) {
-      console.error("❌ Lỗi cập nhật shareCount:", err);
-    }
+    const postRef = doc(db, "posts", post.id);
+    await updateDoc(postRef, {
+      shareCount: increment(1),
+    });
+    onRefresh()
   }
+
   return (
     <Card
       sx={{
