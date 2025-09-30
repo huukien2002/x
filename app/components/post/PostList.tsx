@@ -26,6 +26,7 @@ interface Post {
   createdAt: string | number;
   favorite: boolean;
   visible: boolean;
+  shareCount: number;
 }
 
 interface PostListProps {
@@ -92,6 +93,7 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
             createdAt: postData.createdAt,
             author,
             comments,
+            shareCount: postData.shareCount ?? 0,
             favorite: postData.favorite ?? false,
             visible: postData.visible ?? true,
           } as Post;
@@ -117,6 +119,8 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
+
+  console.log(paginatedPosts)
 
   return (
     <Box sx={{ paddingBottom: 5, mt: 2 }}>

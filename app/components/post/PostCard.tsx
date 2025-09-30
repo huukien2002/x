@@ -37,6 +37,7 @@ interface Comment {
 }
 
 interface Post {
+  shareCount: number;
   id: string;
   title: string;
   thrilled: string;
@@ -66,13 +67,6 @@ export default function PostCard({
       ? new Date(post.createdAt)
       : new Date(post.createdAt);
 
-  // const handleShare = () => {
-  //   const url = `https://x-fe7d.vercel.app/posts/${post.id}`; // link thực tế tới bài viết
-  //   const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-  //     url
-  //   )}`;
-  //   window.open(fbShareUrl, "_blank", "width=600,height=400");
-  // };
   const handleShare = () => {
     const FB = (window as any).FB;
 
@@ -212,7 +206,7 @@ export default function PostCard({
               startIcon={<ShareIcon />}
               onClick={handleShare}
             >
-              Share
+              Share ({post.shareCount > 0 ? post.shareCount : 0})
             </Button>
           </Box>
         </Box>
