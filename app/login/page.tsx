@@ -8,13 +8,16 @@ import {
   Typography,
   Stack,
   Divider,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../../lib/firebase.config";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { Google } from "@mui/icons-material";
+import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { Google, Visibility, VisibilityOff } from "@mui/icons-material";
+import { useState } from "react";
 
 interface LoginForm {
   email: string;
@@ -23,6 +26,8 @@ interface LoginForm {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+
   const { handleSubmit, control } = useForm<LoginForm>({
     defaultValues: { email: "", password: "" },
   });
@@ -61,6 +66,41 @@ export default function LoginPage() {
   };
 
   // Login bằng Google
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     const provider = new GoogleAuthProvider();
+  //     const result = await signInWithPopup(auth, provider);
+  //     const firebaseUser = result.user;
+
+  //     // Query user trong Firestore
+  //     const q = query(
+  //       collection(db, "users"),
+  //       where("email", "==", firebaseUser.email)
+  //     );
+  //     const snapshot = await getDocs(q);
+
+  //     if (snapshot.empty) {
+  //       toast.error("Tài khoản Google này chưa được đăng ký trong hệ thống!");
+  //       return;
+  //     }
+
+  //     // Lấy data user đầu tiên (thường chỉ có 1)
+  //     const userDoc = snapshot.docs[0];
+  //     const userData = {
+  //       id: userDoc.id,
+  //       ...userDoc.data(),
+  //     };
+
+  //     // Lưu user Firestore vào localStorage
+  //     localStorage.setItem("user", JSON.stringify(userData));
+  //     toast.success("Đăng nhập Google thành công");
+  //     window.dispatchEvent(new Event("userChanged"));
+  //     router.push("/");
+  //   } catch (err: any) {
+  //     console.error(err);
+  //     toast.error("Google login error: " + err.message);
+  //   }
+  // };
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -74,21 +114,41 @@ export default function LoginPage() {
       );
       const snapshot = await getDocs(q);
 
+      let userData;
+
       if (snapshot.empty) {
-        toast.error("Tài khoản Google này chưa được đăng ký trong hệ thống!");
-        return;
+        // Nếu user chưa tồn tại => tạo mới
+        const newUserRef = await addDoc(collection(db, "users"), {
+          username: firebaseUser.displayName,
+          email: firebaseUser.email,
+          avatar: firebaseUser.photoURL,
+          postsRemaining: 5,
+          createdAt: Date.now(),
+        });
+
+        userData = {
+          id: newUserRef.id,
+          username: firebaseUser.displayName,
+          email: firebaseUser.email,
+          avatar: firebaseUser.photoURL,
+          postsRemaining: 5,
+          createdAt: Date.now(),
+        };
+
+        toast.success("Đăng nhập Google thành công!");
+      } else {
+        // Nếu user đã tồn tại => login
+        const userDoc = snapshot.docs[0];
+        userData = {
+          id: userDoc.id,
+          ...userDoc.data(),
+        };
+
+        toast.success("Đăng nhập Google thành công!");
       }
 
-      // Lấy data user đầu tiên (thường chỉ có 1)
-      const userDoc = snapshot.docs[0];
-      const userData = {
-        id: userDoc.id,
-        ...userDoc.data(),
-      };
-
-      // Lưu user Firestore vào localStorage
+      // Lưu user vào localStorage
       localStorage.setItem("user", JSON.stringify(userData));
-      toast.success("Đăng nhập Google thành công");
       window.dispatchEvent(new Event("userChanged"));
       router.push("/");
     } catch (err: any) {
@@ -102,7 +162,6 @@ export default function LoginPage() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      // height="100vh"
       width="100%"
     >
       <Box
@@ -146,11 +205,23 @@ export default function LoginPage() {
                 <TextField
                   {...field}
                   label="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   variant="outlined"
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                   fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               )}
             />

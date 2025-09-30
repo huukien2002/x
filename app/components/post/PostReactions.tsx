@@ -126,7 +126,8 @@ export default function PostReactions({
         {userReaction ? (
           reactions.find((r) => r.type === userReaction)?.icon
         ) : (
-          <ThumbUpIcon />
+          // <ThumbUpIcon />
+          <span style={{ fontSize: "1em" }}>👍</span>
         )}
       </IconButton>
 
