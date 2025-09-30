@@ -120,8 +120,6 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
     currentPage * PAGE_SIZE
   );
 
-  console.log(paginatedPosts)
-
   return (
     <Box sx={{ paddingBottom: 5, mt: 2 }}>
       {paginatedPosts.map((post) => (

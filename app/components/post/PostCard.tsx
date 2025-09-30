@@ -94,6 +94,7 @@ export default function PostCard({
     await updateDoc(postRef, {
       shareCount: increment(1),
     });
+    onRefresh()
   }
 
   return (
