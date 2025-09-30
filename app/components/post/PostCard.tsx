@@ -110,10 +110,11 @@ export default function PostCard({
         method: "share",
         href: `https://x-fe7d.vercel.app/posts/${post.id}`,
       },
-      async (response: any) => {
+      (response: any) => {
+        // ✅ callback sync
         if (response && !response.error_message) {
           console.log("✅ Share thành công");
-          await saveShareToFirestore();
+          saveShareToFirestore(); // gọi async function nhưng không để async ở đây
         } else {
           console.log("❌ Share bị hủy hoặc lỗi", response);
         }
