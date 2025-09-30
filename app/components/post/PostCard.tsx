@@ -86,27 +86,16 @@ export default function PostCard({
         method: "share",
         href: `https://x-fe7d.vercel.app/posts/${post.id}`,
       },
-      (response: any) => {
-        if (response && !response.error_message) {
-          console.log("✅ Share thành công");
-          saveShareToFirestore();
-        } else {
-          console.log("❌ Share bị hủy hoặc lỗi", response);
-        }
+      () => {
+        // Không check response nữa
+        console.log("✅ Share popup đã mở, ghi nhận share");
+        saveShareToFirestore();
       }
     );
   };
 
   // Tách async riêng
   async function saveShareToFirestore() {
-    // 1️⃣ Ghi log share riêng
-    await addDoc(collection(db, "post_shares"), {
-      postId: post.id,
-      userId: currentUserId,
-      createdAt: serverTimestamp(),
-    });
-
-    // 2️⃣ Cập nhật shareCount trong document post
     const postRef = doc(db, "posts", post.id);
     await updateDoc(postRef, {
       shareCount: increment(1),
