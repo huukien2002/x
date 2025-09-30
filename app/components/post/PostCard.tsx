@@ -67,6 +67,36 @@ export default function PostCard({
       ? new Date(post.createdAt)
       : new Date(post.createdAt);
 
+  // const handleShare = () => {
+  //   const FB = (window as any).FB;
+
+  //   if (!FB) {
+  //     console.error("Facebook SDK chưa load xong");
+  //     return;
+  //   }
+
+  //   FB.ui(
+  //     {
+  //       method: "share",
+  //       href: `https://x-fe7d.vercel.app/posts/${post.id}`,
+  //     },
+  //     () => {
+  //       // Không check response nữa
+  //       console.log("✅ Share popup đã mở, ghi nhận share");
+  //       saveShareToFirestore();
+  //     }
+  //   );
+  // };
+
+  // // Tách async riêng
+  // async function saveShareToFirestore() {
+  //   const postRef = doc(db, "posts", post.id);
+  //   await updateDoc(postRef, {
+  //     shareCount: increment(1),
+  //   });
+  //   onRefresh()
+  // }
+
   const handleShare = () => {
     const FB = (window as any).FB;
 
@@ -81,20 +111,34 @@ export default function PostCard({
         href: `https://x-fe7d.vercel.app/posts/${post.id}`,
       },
       () => {
-        // Không check response nữa
-        console.log("✅ Share popup đã mở, ghi nhận share");
+        console.log("✅ Share popup đã mở, kiểm tra số share thật");
         saveShareToFirestore();
       }
     );
   };
 
-  // Tách async riêng
+  // Lấy số share thật từ Facebook Graph API rồi cập nhật Firestore
   async function saveShareToFirestore() {
-    const postRef = doc(db, "posts", post.id);
-    await updateDoc(postRef, {
-      shareCount: increment(1),
-    });
-    onRefresh()
+    try {
+      const postUrl = `https://x-fe7d.vercel.app/posts/${post.id}`;
+      const token = 1958437421712750;
+      // 👆 Tạo app token: APP_ID|APP_SECRET
+
+      const res = await fetch(
+        `https://graph.facebook.com/v20.0/?id=${encodeURIComponent(
+          postUrl
+        )}&fields=engagement&access_token=${token}`
+      );
+      const data = await res.json();
+      const count = data?.engagement?.share_count ?? 0;
+
+      const postRef = doc(db, "posts", post.id);
+      await updateDoc(postRef, { shareCount: count });
+
+      onRefresh();
+    } catch (err) {
+      console.error("❌ Lỗi cập nhật shareCount:", err);
+    }
   }
 
   return (
