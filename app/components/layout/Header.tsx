@@ -20,6 +20,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import { ref, onValue, off } from "firebase/database";
 import { db, rtdb } from "@/lib/firebase.config";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { toast } from "react-toastify";
 
 interface User {
   name: string;
@@ -120,6 +121,7 @@ const Header = () => {
     localStorage.removeItem("user");
     window.dispatchEvent(new Event("userChanged"));
     router.push("/login");
+    toast.success("Đăng xuất thành công!");
     handleMenuClose();
   };
 
