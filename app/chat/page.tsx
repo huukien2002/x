@@ -12,6 +12,8 @@ import {
   Button,
   Divider,
   Badge,
+  Popover,
+  IconButton,
 } from "@mui/material";
 import { useUser } from "@/hooks/useUser";
 import { db as fsDb, rtdb } from "@/lib/firebase.config";
@@ -29,7 +31,22 @@ interface MessageType {
   sender: string;
   text: string;
   createdAt: number;
+  id: any;
+  reactions?: Record<string, string>;
 }
+
+const emojis = [
+  "❤️", // yêu thích
+  "😀", // cười vui
+  "😂", // cười ra nước mắt
+  "😍", // yêu thích
+  "😅", // ngại ngùng
+  "😎", // ngầu
+  "🤔", // suy nghĩ
+  "😢", // buồn
+  "😭", // khóc to
+  "😡", // tức giận
+];
 
 export default function ChatPage() {
   const user = useUser();
@@ -39,6 +56,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [text, setText] = useState("");
   const [rooms, setRooms] = useState<any[]>([]);
+  const [selectedMsg, setSelectedMsg] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -117,7 +135,10 @@ export default function ChatPage() {
     const listener = onValue(chatRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const msgs = Object.values(data) as MessageType[];
+        const msgs = Object.entries(data).map(([id, value]: [string, any]) => ({
+          id,
+          ...value,
+        }));
         setMessages(msgs.sort((a, b) => a.createdAt - b.createdAt));
       } else {
         setMessages([]);
@@ -128,84 +149,6 @@ export default function ChatPage() {
       off(chatRef);
     };
   }, [roomId]);
-
-  // 🔹 Khi chọn user để chat
-  // const handleSelectUser = async (other: UserType) => {
-  //   if (!user) return;
-  //   setSelectedUser(other);
-
-  //   // Check trong rooms xem có room giữa 2 email chưa
-  //   const roomsRef = ref(rtdb, "rooms");
-  //   const snapshot = await get(roomsRef);
-
-  //   let existingRoomId: string | null = null;
-
-  //   if (snapshot.exists()) {
-  //     const allRooms = snapshot.val();
-  //     for (const [rid, room] of Object.entries<any>(allRooms)) {
-  //       if (
-  //         (room.sender === user.email && room.receiver === other.email) ||
-  //         (room.sender === other.email && room.receiver === user.email)
-  //       ) {
-  //         existingRoomId = rid;
-  //         break;
-  //       }
-  //     }
-  //   }
-
-  //   if (existingRoomId) {
-  //     setRoomId(existingRoomId);
-  //   } else {
-  //     // Tạo room mới
-  //     const newRoomRef = push(roomsRef);
-  //     await set(newRoomRef, {
-  //       sender: user.email,
-  //       receiver: other.email,
-  //       createdAt: Date.now(),
-  //     });
-  //     setRoomId(newRoomRef.key);
-  //   }
-  // };
-
-  // 🔹 Gửi tin nhắn
-  // const handleSend = async () => {
-  //   if (!user || !selectedUser || !roomId || !text.trim()) return;
-
-  //   const msgRef = push(ref(rtdb, `chats/${roomId}`));
-  //   await set(msgRef, {
-  //     sender: user.email,
-  //     text,
-  //     createdAt: Date.now(),
-  //   });
-
-  //   // Cập nhật lastMessage trong rooms
-  //   const roomRef = ref(rtdb, `rooms/${roomId}`);
-  //   await update(roomRef, {
-  //     lastMessage: text,
-  //     lastSender: user.email,
-  //     updatedAt: Date.now(),
-  //   });
-
-  //   setText("");
-  // };
-
-  // 🔹 Load danh sách user
-  // useEffect(() => {
-  //   if (!user) return;
-  //   const fetchUsers = async () => {
-  //     const snapshot = await getDocs(collection(fsDb, "users"));
-  //     const list: UserType[] = [];
-  //     snapshot.forEach((doc) => {
-  //       /* eslint-disable @typescript-eslint/no-explicit-any */
-  //       const data = doc.data() as any;
-  //       if (data.email !== user.email) {
-  //         list.push({ id: doc.id, ...data });
-  //       }
-  //     });
-  //     setUsers(list);
-  //   };
-  //   fetchUsers();
-  // }, [user]);
 
   const handleSelectUser = async (other: UserType) => {
     if (!user) return;
@@ -319,18 +262,29 @@ export default function ChatPage() {
     );
   };
 
-  if (!user) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-      >
-        <Typography>Please login</Typography>
-      </Box>
-    );
-  }
+  // 🔹 Reaction msg
+  const handleSelectEmoji = async (emoji: string) => {
+    if (!selectedMsg || !user) return;
+
+    const userKey = user.email.replace(/\./g, "_");
+    const msgRef = ref(rtdb, `chats/${roomId}/${selectedMsg}/reactions`);
+
+    // Lấy dữ liệu reaction hiện tại của tin nhắn
+    const snapshot = await get(msgRef);
+    const reactions = snapshot.val() || {};
+
+    // Nếu user đã chọn cùng emoji -> xóa reaction
+    if (reactions[userKey] === emoji) {
+      await update(msgRef, { [userKey]: null });
+    } else {
+      // Nếu khác -> set reaction mới
+      await update(msgRef, { [userKey]: emoji });
+    }
+
+    setSelectedMsg(null);
+  };
+
+  if (!user) return null;
 
   return (
     <div className="flex flex-col flex-1 sm:flex-row">
@@ -339,31 +293,6 @@ export default function ChatPage() {
         <div className="h-[80px] flex items-center px-3 text-lg  border-b border-gray-300">
           Users
         </div>
-
-        {/* Danh sách user scroll */}
-        {/* <div className="h-[calc(100vh-200px)] overflow-y-auto">
-          {users.map((u) => (
-            <button
-              key={u.id}
-              onClick={() => handleSelectUser(u)}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 ${
-                selectedUser?.id === u.id ? "bg-gray-200" : ""
-              }`}
-            >
-              <div className="w-15 h-15 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
-                {u.avatar ? (
-                  <Avatar src={u.avatar || undefined}>{u.username?.[0]}</Avatar>
-                ) : (
-                  <span className="text-sm font-medium">{u.username?.[0]}</span>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">{u.username}</span>
-                <span className="text-xs text-gray-500">{u.email}</span>
-              </div>
-            </button>
-          ))}
-        </div> */}
 
         <div className="h-[calc(100vh-200px)] overflow-y-auto">
           <List disablePadding>
@@ -426,7 +355,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="w-full md:w-3/4 h-full">
+      <div className="w-full md:w-3/4 h-full ">
         {selectedUser ? (
           <>
             <Box p={2} borderBottom="1px solid #ccc">
@@ -441,45 +370,124 @@ export default function ChatPage() {
               ref={scrollRef}
               className="h-[calc(100vh-250px)] overflow-y-scroll px-5 py-3"
             >
-              {messages.map((msg, idx) => (
-                <Box
-                  key={idx}
-                  display="flex"
-                  flexDirection="column"
-                  alignItems={
-                    msg.sender === user?.email ? "flex-end" : "flex-start"
-                  }
-                  mb={0.5}
-                >
+              <Box sx={{ py: 5 }}>
+                {messages.map((msg: any, idx: number) => (
                   <Box
-                    p={1.2}
-                    borderRadius={2}
-                    bgcolor={
-                      msg.sender === user?.email ? "primary.main" : "grey.200"
+                    key={idx}
+                    display="flex"
+                    flexDirection="column"
+                    alignItems={
+                      msg.sender === user?.email ? "flex-end" : "flex-start"
                     }
-                    color={msg.sender === user?.email ? "white" : "black"}
-                    maxWidth="70%"
+                    mb={0.5}
+                    sx={{ position: "relative" }} // 👈 cần để absolute bên trong hoạt động
                   >
-                    <Typography variant="body1">{msg.text}</Typography>
-                  </Box>
+                    {/* bubble */}
+                    <Box
+                      p={1.2}
+                      borderRadius={2}
+                      bgcolor={
+                        msg.sender === user?.email ? "primary.main" : "grey.200"
+                      }
+                      color={msg.sender === user?.email ? "white" : "black"}
+                      maxWidth="70%"
+                      onClick={() =>
+                        setSelectedMsg(selectedMsg === msg.id ? null : msg.id)
+                      }
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <Typography variant="body1">{msg.text}</Typography>
 
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: "0.65rem",
-                      opacity: 0.6,
-                      mt: 0.3,
-                    }}
-                  >
-                    {msg.createdAt
-                      ? new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : ""}
-                  </Typography>
-                </Box>
-              ))}
+                      {/* hiển thị reaction nếu có */}
+                      {msg.reactions && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 10,
+                            right: msg.sender === user?.email ? 0 : "auto",
+                            left: msg.sender === user?.email ? "auto" : 0,
+                            display: "flex",
+                            gap: "3px",
+                            borderRadius: "12px",
+                            px: 0.5,
+                            py: 0.2,
+                          }}
+                        >
+                          {Object.values(msg.reactions).map((emoji: any, i) => (
+                            <span key={i} style={{ fontSize: "0.9rem" }}>
+                              {emoji}
+                            </span>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* popup emoji */}
+                    {selectedMsg === msg.id && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          bottom: -45,
+                          right: msg.sender === user?.email ? 0 : "auto",
+                          left: msg.sender === user?.email ? "auto" : 0,
+                          display: "flex",
+                          gap: "5px",
+                          bgcolor: "white",
+                          borderRadius: "20px",
+                          boxShadow: 3,
+                          px: 1,
+                          py: 0.5,
+                          zIndex: 10,
+                        }}
+                      >
+                        {emojis.map((emoji, i) => {
+                          const userKey = user?.email.replace(/\./g, "_");
+                          const currentReaction = msg.reactions?.[userKey];
+
+                          return (
+                            <IconButton
+                              key={i}
+                              onClick={() => handleSelectEmoji(emoji)}
+                              sx={{
+                                bgcolor:
+                                  currentReaction === emoji
+                                    ? "grey.300"
+                                    : "transparent", // 👈 highlight
+                                borderRadius: "50%",
+                              }}
+                            >
+                              <span style={{ fontSize: "1.5rem" }}>
+                                {emoji}
+                              </span>
+                            </IconButton>
+                          );
+                        })}
+                      </Box>
+                    )}
+
+                    {/* thời gian */}
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "0.65rem",
+                        opacity: 0.6,
+                        mt: 1,
+                      }}
+                    >
+                      {msg.createdAt
+                        ? new Date(msg.createdAt).toLocaleString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : ""}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
             </div>
             <Box p={2} display="flex" gap={1}>
               <TextField
