@@ -27,6 +27,7 @@ interface Post {
   favorite: boolean;
   visible: boolean;
   shareCount: number;
+  reactionsCount: number;
 }
 
 interface PostListProps {

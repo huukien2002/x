@@ -8,6 +8,8 @@ import {
   Divider,
   IconButton,
   Button,
+  Stack,
+  Tooltip,
 } from "@mui/material";
 import CommentBox from "./CommentBox";
 import CommentList from "./CommentList";
@@ -23,7 +25,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
 import { useFacebookSDK } from "@/hooks/useFacebookSDK";
-
+import PostReactions from "./PostReactions";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 interface User {
   id: string;
   username: string;
@@ -94,7 +97,7 @@ export default function PostCard({
     await updateDoc(postRef, {
       shareCount: increment(1),
     });
-    onRefresh()
+    onRefresh();
   }
 
   return (
@@ -178,19 +181,61 @@ export default function PostCard({
           </Typography>
         )}
 
-        {/* Comments */}
         <Box>
-          <Divider sx={{ my: 1 }} />
-          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-            Comments 💬
-          </Typography>
+          {/* Actions */}
+          <Box
+            mt={2}
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            {/* Reactions */}
+            {user && (
+              <PostReactions post={post} currentUserId={currentUserId} />
+            )}
 
-          {/* Comment list (scroll riêng) */}
+            {/* Comment + Share */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              {/* Comment */}
+              <Stack direction="row" alignItems="center">
+                <Tooltip title="Bình luận">
+                  <IconButton
+                    color="secondary"
+                    sx={{
+                      color: "black",
+                      fontSize: "2rem",
+                    }}
+                  >
+                    💬 <span style={{ fontSize: "0.75rem" }}>{post.comments.length > 0 && post.comments.length}</span>
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+
+              {/* Share */}
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Tooltip title="Chia sẻ bài viết">
+                  <IconButton
+                    color="primary"
+                    onClick={handleShare}
+                    sx={{
+                      color: "black",
+                      fontSize: "2rem",
+                    }}
+                  >
+                    📤 <span style={{ fontSize: "0.75rem" }}> {post.shareCount > 0 && post.shareCount}</span>
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Stack>
+          </Box>
+
+          {/* Comment list */}
+          <Divider sx={{ my: 1 }} />
           <Box sx={{ maxHeight: 150, overflowY: "auto", paddingRight: 2 }}>
             <CommentList comments={post.comments} />
           </Box>
 
-          {/* Comment form (luôn hiện) */}
+          {/* Comment form  */}
           {user && (
             <Box mt={1}>
               <CommentBox
@@ -200,16 +245,6 @@ export default function PostCard({
               />
             </Box>
           )}
-
-          <Box mt={2} display="flex" justifyContent="flex-end">
-            <Button
-              size="small"
-              startIcon={<ShareIcon />}
-              onClick={handleShare}
-            >
-              Share ({post.shareCount > 0 ? post.shareCount : 0})
-            </Button>
-          </Box>
         </Box>
       </CardContent>
     </Card>
