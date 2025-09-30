@@ -43,20 +43,22 @@ const Header = () => {
   useEffect(() => {
     let originalTitle = "Blog";
     let interval: number | null = null;
+    let step = 0;
 
     const getNotificationTitle = () => {
-      if (hasUnread && hasFriendRequest) return "[Msg] [Req]";
-      if (hasUnread) return "[Msg]";
-      if (hasFriendRequest) return "[Req]";
+      const arrowSteps = ["", "->", "-->"];
+      const arrow = arrowSteps[step % arrowSteps.length];
+
+      if (hasUnread && hasFriendRequest) return `${arrow} 💌 & 👥`;
+      if (hasUnread) return `${arrow} 💌`;
+      if (hasFriendRequest) return `${arrow} 👥`;
       return originalTitle;
     };
 
     if (hasUnread || hasFriendRequest) {
-      let show = true;
       interval = window.setInterval(() => {
-        // <-- dùng window.setInterval
-        document.title = show ? getNotificationTitle() : originalTitle;
-        show = !show;
+        document.title = getNotificationTitle();
+        step++; // tăng bước mũi tên
       }, 1000);
     } else {
       document.title = originalTitle;

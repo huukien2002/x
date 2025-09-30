@@ -380,11 +380,11 @@ export default function ChatPage() {
                       msg.sender === user?.email ? "flex-end" : "flex-start"
                     }
                     mb={0.5}
-                    sx={{ position: "relative" }} // 👈 cần để absolute bên trong hoạt động
+                    sx={{ position: "relative" }}
                   >
                     {/* bubble */}
                     <Box
-                      p={1.2}
+                      p={msg.type === "image" ? 0.5 : 1.2} // nhỏ hơn padding cho ảnh
                       borderRadius={2}
                       bgcolor={
                         msg.sender === user?.email ? "primary.main" : "grey.200"
@@ -396,14 +396,27 @@ export default function ChatPage() {
                       }
                       sx={{ cursor: "pointer" }}
                     >
-                      <Typography variant="body1">{msg.text}</Typography>
+                      {msg.type === "image" ? (
+                        <img
+                          src={msg.text}
+                          alt="shared"
+                          style={{
+                            maxWidth: "150px",
+                            maxHeight: "150px",
+                            borderRadius: "8px",
+                            display: "block",
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body1">{msg.text}</Typography>
+                      )}
 
                       {/* hiển thị reaction nếu có */}
                       {msg.reactions && (
                         <Box
                           sx={{
                             position: "absolute",
-                            bottom: 10,
+                            bottom: 8,
                             right: msg.sender === user?.email ? 0 : "auto",
                             left: msg.sender === user?.email ? "auto" : 0,
                             display: "flex",
@@ -452,7 +465,7 @@ export default function ChatPage() {
                                 bgcolor:
                                   currentReaction === emoji
                                     ? "grey.300"
-                                    : "transparent", // 👈 highlight
+                                    : "transparent",
                                 borderRadius: "50%",
                               }}
                             >
@@ -468,11 +481,7 @@ export default function ChatPage() {
                     {/* thời gian */}
                     <Typography
                       variant="caption"
-                      sx={{
-                        fontSize: "0.65rem",
-                        opacity: 0.6,
-                        mt: 1,
-                      }}
+                      sx={{ fontSize: "0.65rem", opacity: 0.6, mt: 1.75 }}
                     >
                       {msg.createdAt
                         ? new Date(msg.createdAt).toLocaleString("vi-VN", {

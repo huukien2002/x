@@ -27,6 +27,7 @@ import { db } from "@/lib/firebase.config";
 import { useFacebookSDK } from "@/hooks/useFacebookSDK";
 import PostReactions from "./PostReactions";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import FriendAction from "./FriendAction";
 interface User {
   id: string;
   username: string;
@@ -130,11 +131,12 @@ export default function PostCard({
             {createdDate.toLocaleString()}
           </Typography>
         }
-        action={
-          <IconButton size="small">
-            <MoreVert fontSize="small" />
-          </IconButton>
-        }
+        // action={
+        //   <IconButton size="small">
+        //     <MoreVert fontSize="small" />
+        //   </IconButton>
+        // }
+        action={<FriendAction postToShare={post} />}
         sx={{ pb: 0 }}
       />
 
@@ -206,7 +208,10 @@ export default function PostCard({
                       fontSize: "2rem",
                     }}
                   >
-                    💬 <span style={{ fontSize: "0.75rem" }}>{post.comments.length > 0 && post.comments.length}</span>
+                    💬{" "}
+                    <span style={{ fontSize: "0.75rem" }}>
+                      {post.comments.length > 0 && post.comments.length}
+                    </span>
                   </IconButton>
                 </Tooltip>
               </Stack>
@@ -222,7 +227,11 @@ export default function PostCard({
                       fontSize: "2rem",
                     }}
                   >
-                    📤 <span style={{ fontSize: "0.75rem" }}> {post.shareCount > 0 && post.shareCount}</span>
+                    📤{" "}
+                    <span style={{ fontSize: "0.75rem" }}>
+                      {" "}
+                      {post.shareCount > 0 && post.shareCount}
+                    </span>
                   </IconButton>
                 </Tooltip>
               </Stack>

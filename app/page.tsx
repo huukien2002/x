@@ -249,10 +249,7 @@ export default function HomePage() {
             )}
           </Box>
           {user && (
-            <Link
-              href={`/profile`}
-              style={{ textDecoration: "none" }}
-            >
+            <Link href={`/profile`} style={{ textDecoration: "none" }}>
               <Avatar
                 sx={{
                   bgcolor: deepPurple[500],
@@ -349,8 +346,9 @@ export default function HomePage() {
             Post sôi nổi 📌{" "}
           </Typography>
           {postsTop.map((post, i) => {
-            const starCount = 3 - i; // top1 = 3 sao, top2 = 2 sao, top3 = 1 sao
-            const stars = "⭐".repeat(starCount);
+            // top1 = 🥇, top2 = 🥈, top3 = 🥉
+            const medalEmojis = ["🥇", "🥈", "🥉"];
+            const medal = medalEmojis[i] || "🏅"; // nếu nhiều hơn top 3 thì dùng huy chương chung
 
             return (
               <Link key={post.id} href={`/posts/${post.id}`} passHref>
@@ -371,8 +369,10 @@ export default function HomePage() {
                 >
                   <Box>
                     <Box display="flex" alignItems="center" gap={1}>
-                      {/* Sao KHÔNG gạch chân */}
-                      <Typography fontWeight="bold">{stars}</Typography>
+                      {/* Huy chương */}
+                      <Typography fontWeight="bold" sx={{ fontSize: "2rem" }}>
+                        {medal}
+                      </Typography>
 
                       {/* Title CÓ gạch chân xanh */}
                       <Typography
@@ -386,10 +386,12 @@ export default function HomePage() {
                       >
                         {post.title ?? "Bài viết nổi bật"}
                       </Typography>
+
                       <Typography color="text.secondary">
                         (comments: {post?.comments.length})
                       </Typography>
                     </Box>
+
                     <Typography variant="body2" color="text.secondary">
                       {post?.authorId}
                     </Typography>
