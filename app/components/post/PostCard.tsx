@@ -131,11 +131,6 @@ export default function PostCard({
             {createdDate.toLocaleString()}
           </Typography>
         }
-        // action={
-        //   <IconButton size="small">
-        //     <MoreVert fontSize="small" />
-        //   </IconButton>
-        // }
         action={<FriendAction postToShare={post} />}
         sx={{ pb: 0 }}
       />
@@ -160,7 +155,7 @@ export default function PostCard({
             alt={post.title}
             style={{
               width: "100%",
-              maxHeight: 300,
+              maxHeight: 'auto',
               objectFit: "cover",
               borderRadius: "8px",
             }}
