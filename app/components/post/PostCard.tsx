@@ -110,37 +110,29 @@ export default function PostCard({
         method: "share",
         href: `https://x-fe7d.vercel.app/posts/${post.id}`,
       },
-      () => {
-        console.log("✅ Share popup đã mở, kiểm tra số share thật");
-        saveShareToFirestore();
+      async (response: any) => {
+        if (response && !response.error_message) {
+          console.log("✅ Share thành công");
+          await saveShareToFirestore();
+        } else {
+          console.log("❌ Share bị hủy hoặc lỗi", response);
+        }
       }
     );
   };
 
-  // Lấy số share thật từ Facebook Graph API rồi cập nhật Firestore
+  // Chỉ tăng +1, không reset
   async function saveShareToFirestore() {
     try {
-      const postUrl = `https://x-fe7d.vercel.app/posts/${post.id}`;
-      const token = 1958437421712750;
-      // 👆 Tạo app token: APP_ID|APP_SECRET
-
-      const res = await fetch(
-        `https://graph.facebook.com/v20.0/?id=${encodeURIComponent(
-          postUrl
-        )}&fields=engagement&access_token=${token}`
-      );
-      const data = await res.json();
-      const count = data?.engagement?.share_count ?? 0;
-
       const postRef = doc(db, "posts", post.id);
-      await updateDoc(postRef, { shareCount: count });
-
+      await updateDoc(postRef, {
+        shareCount: increment(1),
+      });
       onRefresh();
     } catch (err) {
       console.error("❌ Lỗi cập nhật shareCount:", err);
     }
   }
-
   return (
     <Card
       sx={{
