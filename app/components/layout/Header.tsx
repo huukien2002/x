@@ -181,7 +181,7 @@ const Header = () => {
   return (
     <AppBar position="static" color="primary">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6" component="div">
+        <Typography onClick={() => router.push("/")} variant="h6" component="div" sx={{ cursor: "pointer" }}>
           Blog
         </Typography>
 
