@@ -16,15 +16,13 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import ChatIcon from "@mui/icons-material/Chat";
 import GroupIcon from "@mui/icons-material/Group";
-import Brightness4Icon from "@mui/icons-material/Brightness4"; // 🌙 Dark mode
-import Brightness7Icon from "@mui/icons-material/Brightness7"; // 🌞 Light mode
 
 // Firebase
 import { ref, onValue, off } from "firebase/database";
 import { db, rtdb } from "@/lib/firebase.config";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { toast } from "react-toastify";
-import { ThemeContext } from "@/app/context/ThemeContext";
+import ToggleThemeButton from "@/app/lib/ToggleThemeButton";
 
 // 🔹 Import ThemeContext
 
@@ -40,9 +38,6 @@ const Header = () => {
   const [hasFriendRequest, setHasFriendRequest] = useState(false);
 
   const router = useRouter();
-
-  // 🔹 Lấy theme context
-  const { mode, toggleTheme } = useContext(ThemeContext);
 
   const loadUser = () => {
     const storedUser = localStorage.getItem("user");
@@ -191,7 +186,13 @@ const Header = () => {
         </Typography>
 
         {/* Desktop menu */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
+        <Box
+          sx={{
+            display: { xs: "none", md: "flex" },
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
           {menuItems.map((item) =>
             item.href ? (
               <Button
@@ -208,11 +209,7 @@ const Header = () => {
               </Button>
             )
           )}
-
-          {/* 🔹 Nút đổi theme */}
-          <IconButton color="inherit" onClick={toggleTheme}>
-            {mode === "light" ? <Brightness4Icon /> : <Brightness7Icon />}
-          </IconButton>
+          <ToggleThemeButton />
         </Box>
 
         {/* Mobile menu */}
@@ -243,10 +240,7 @@ const Header = () => {
               )
             )}
 
-            {/* 🔹 Mobile toggle theme */}
-            <MenuItem onClick={toggleTheme}>
-              {mode === "light" ? "Dark Mode 🌙" : "Light Mode 🌞"}
-            </MenuItem>
+            <ToggleThemeButton />
           </Menu>
         </Box>
       </Toolbar>
