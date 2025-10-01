@@ -155,7 +155,7 @@ export default function PostCard({
             alt={post.title}
             style={{
               width: "100%",
-              maxHeight: 'auto',
+              maxHeight: "auto",
               objectFit: "cover",
               borderRadius: "8px",
             }}
@@ -198,10 +198,13 @@ export default function PostCard({
                 <Tooltip title="Bình luận">
                   <IconButton
                     color="secondary"
-                    sx={{
-                      color: "black",
+                    sx={(theme) => ({
                       fontSize: "2rem",
-                    }}
+                      color:
+                        theme.palette.mode === "light"
+                          ? theme.palette.text.primary 
+                          : theme.palette.text.secondary,
+                    })}
                   >
                     💬{" "}
                     <span style={{ fontSize: "0.75rem" }}>
@@ -217,10 +220,13 @@ export default function PostCard({
                   <IconButton
                     color="primary"
                     onClick={handleShare}
-                    sx={{
-                      color: "black",
+                    sx={(theme) => ({
                       fontSize: "2rem",
-                    }}
+                      color:
+                        theme.palette.mode === "light"
+                          ? theme.palette.text.primary
+                          : theme.palette.text.secondary,
+                    })}
                   >
                     📤{" "}
                     <span style={{ fontSize: "0.75rem" }}>
@@ -235,7 +241,31 @@ export default function PostCard({
 
           {/* Comment list */}
           <Divider sx={{ my: 1 }} />
-          <Box sx={{ maxHeight: 150, overflowY: "auto", paddingRight: 2 }}>
+          <Box
+            sx={(theme) => ({
+              maxHeight: 150,
+              overflowY: "auto",
+              pr: 2,
+              borderRadius: 2,
+              // custom scrollbar
+              "&::-webkit-scrollbar": {
+                width: "6px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? theme.palette.grey[400]
+                    : theme.palette.grey[700],
+                borderRadius: 4,
+              },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? theme.palette.grey[200]
+                    : theme.palette.background.default,
+              },
+            })}
+          >
             <CommentList comments={post.comments} />
           </Box>
 

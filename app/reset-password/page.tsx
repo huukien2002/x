@@ -101,6 +101,10 @@ export default function ResetPasswordPage() {
       borderRadius={2}
       boxShadow={3}
       textAlign="center"
+      sx={(theme) => ({
+        bgcolor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
+      })}
     >
       <Typography variant="h5" mb={3}>
         Reset Password

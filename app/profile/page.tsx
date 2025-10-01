@@ -36,6 +36,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Dayjs } from "dayjs";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { alpha } from "@mui/material/styles";
+
 interface Post {
   id: string;
   title: string;
@@ -322,7 +324,15 @@ const ProfilePage: React.FC = () => {
                       <Tooltip title="Download">
                         <IconButton
                           size="small"
-                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          sx={(theme) => ({
+                            bgcolor: alpha(theme.palette.background.paper, 0.7),
+                            "&:hover": {
+                              bgcolor: alpha(
+                                theme.palette.background.paper,
+                                0.9
+                              ),
+                            },
+                          })}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownload(post.imageUrl, post.title);
@@ -334,7 +344,15 @@ const ProfilePage: React.FC = () => {
                       <Tooltip title="Zoom">
                         <IconButton
                           size="small"
-                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          sx={(theme) => ({
+                            bgcolor: alpha(theme.palette.background.paper, 0.7),
+                            "&:hover": {
+                              bgcolor: alpha(
+                                theme.palette.background.paper,
+                                0.9
+                              ),
+                            },
+                          })}
                           onClick={(e) => {
                             e.stopPropagation();
                             setZoomImage(post.imageUrl);
@@ -348,7 +366,15 @@ const ProfilePage: React.FC = () => {
                       >
                         <IconButton
                           size="small"
-                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          sx={(theme) => ({
+                            bgcolor: alpha(theme.palette.background.paper, 0.7),
+                            "&:hover": {
+                              bgcolor: alpha(
+                                theme.palette.background.paper,
+                                0.9
+                              ),
+                            },
+                          })}
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleFavorite(post.id);
@@ -367,7 +393,15 @@ const ProfilePage: React.FC = () => {
                       >
                         <IconButton
                           size="small"
-                          sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
+                          sx={(theme) => ({
+                            bgcolor: alpha(theme.palette.background.paper, 0.7),
+                            "&:hover": {
+                              bgcolor: alpha(
+                                theme.palette.background.paper,
+                                0.9
+                              ),
+                            },
+                          })}
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleVisible(post.id);

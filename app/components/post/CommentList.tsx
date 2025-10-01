@@ -27,21 +27,30 @@ export default function CommentList({ comments }: { comments: any[] }) {
               <Box display="flex" alignItems="flex-start">
                 <Avatar src={c.user.avatar ?? ""} sx={{ mr: 2 }} />
                 <Box
-                  sx={{
-                    bgcolor: "grey.100",
+                  sx={(theme) => ({
+                    bgcolor:
+                      theme.palette.mode === "light"
+                        ? theme.palette.grey[300]
+                        : theme.palette.background.paper,
                     px: 2,
                     py: 1,
                     borderRadius: 2,
                     flex: 1,
-                  }}
+                  })}
                 >
-                  <Typography variant="body2" fontWeight="bold">
+                  <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                    color="text.primary"
+                  >
                     {c.user.username}
                   </Typography>
-                  <Typography variant="body2">{c.text}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {c.text}
+                  </Typography>
                 </Box>
               </Box>
-              {idx < comments.length - 1 && <Divider sx={{ mt: 1 }} />}
+              {/* {idx < comments.length - 1 && <Divider sx={{ mt: 1 }} />} */}
             </Box>
           ))}
         </Box>

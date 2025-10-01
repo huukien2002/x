@@ -65,22 +65,25 @@ export default function CommentBox({
         fullWidth
         value={text}
         onChange={(e) => setText(e.target.value)}
-        sx={{
+        sx={(theme) => ({
           "& .MuiOutlinedInput-root": {
             borderRadius: "20px",
-            bgcolor: "grey.50",
+            bgcolor: theme.palette.background.paper, // nền input
             "& fieldset": {
-              borderColor: "grey.300",
+              borderColor: theme.palette.divider, // viền mặc định
             },
             "&:hover fieldset": {
-              borderColor: "primary.main",
+              borderColor: theme.palette.primary.main,
             },
             "&.Mui-focused fieldset": {
-              borderColor: "primary.main",
+              borderColor: theme.palette.primary.main,
               borderWidth: 2,
             },
           },
-        }}
+          "& input": {
+            color: theme.palette.text.primary, // chữ tự đổi màu dark/light
+          },
+        })}
       />
 
       {/* Nút gửi */}

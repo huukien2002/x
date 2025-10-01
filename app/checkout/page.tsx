@@ -63,17 +63,18 @@ export default function StripeTestPage() {
     }
   };
 
-  if(!user) return null
+  if (!user) return null;
 
   return (
     <Container maxWidth="sm">
       <Box
-        sx={{
+        sx={(theme) => ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           py: 6,
-        }}
+          bgcolor: theme.palette.background.default, // theo theme
+        })}
       >
         <Container maxWidth="md">
           <Typography align="center" sx={{ fontWeight: 700, mb: 6 }}>
@@ -84,19 +85,20 @@ export default function StripeTestPage() {
             {plans.map((plan) => (
               <Card
                 key={plan.amount}
-                sx={{
+                sx={(theme) => ({
                   width: { xs: "100%", sm: 220 },
                   textAlign: "center",
                   py: 4,
                   px: 2,
                   borderRadius: 3,
-                  boxShadow: 3,
+                  bgcolor: theme.palette.background.paper, // nền theo theme
+                  boxShadow: theme.shadows[3],
                   transition: "transform 0.3s, box-shadow 0.3s",
                   "&:hover": {
                     transform: "translateY(-8px)",
-                    boxShadow: 6,
+                    boxShadow: theme.shadows[6],
                   },
-                }}
+                })}
               >
                 <CardContent>
                   <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -120,12 +122,10 @@ export default function StripeTestPage() {
                       py: 1.5,
                       fontWeight: 600,
                       textTransform: "none",
-                      backgroundColor: "primary.main",
+                      transition: "all 0.3s",
                       "&:hover": {
-                        backgroundColor: "primary.dark",
                         transform: "scale(1.05)",
                       },
-                      transition: "all 0.3s",
                     }}
                   >
                     Pay ${plan.amount}

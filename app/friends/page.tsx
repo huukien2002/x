@@ -127,7 +127,32 @@ export default function FriendPage() {
                 Không còn user nào
               </Typography>
             ) : (
-              <div className="overflow-y-scroll h-[400px]">
+              <Box
+                sx={(theme) => ({
+                  height: 400,
+                  overflowY: "auto",
+                  bgcolor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                  pr: 1,
+                  /* Custom scrollbar */
+                  "&::-webkit-scrollbar": {
+                    width: 8,
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[400],
+                    borderRadius: 4,
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? theme.palette.background.default
+                        : theme.palette.grey[200],
+                  },
+                })}
+              >
                 {otherUsers.map((u) => (
                   <ListItem key={u.id} divider>
                     <ListItemAvatar>
@@ -143,7 +168,7 @@ export default function FriendPage() {
                     </Button>
                   </ListItem>
                 ))}
-              </div>
+              </Box>
             )}
           </CardContent>
         </Card>

@@ -12,7 +12,15 @@ interface Props {
 
 const ClientLayout = ({ children }: Props) => {
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <Box
+      sx={(theme) => ({
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+      })}
+    >
       <Header />
       <Box
         sx={{

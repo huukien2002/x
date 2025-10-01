@@ -137,16 +137,23 @@ export default function HomePage() {
   };
 
   return (
-    <Box sx={{ bgcolor: "#f5f6fa", minHeight: "100vh", width: "100%" }}>
+    <Box
+      sx={(theme) => ({
+        minHeight: "100vh",
+        width: "100%",
+        backgroundColor: theme.palette.background.default, // theo theme
+        color: theme.palette.text.primary, // chữ tự đổi trắng/đen
+      })}
+    >
       {/* HEADER */}
       <AppBar
         position="sticky"
         elevation={0}
-        sx={{
-          bgcolor: "white",
-          color: "black",
-          borderBottom: "1px solid #eee",
-        }}
+        sx={(theme) => ({
+          bgcolor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        })}
       >
         <Toolbar sx={{ maxWidth: 1200, mx: "auto", width: "100%" }}>
           <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
@@ -268,7 +275,7 @@ export default function HomePage() {
 
       {/* MAIN CONTENT */}
       <Box
-        sx={{
+        sx={(theme) => ({
           maxWidth: 1200,
           mx: "auto",
           mt: 5,
@@ -276,9 +283,9 @@ export default function HomePage() {
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           gap: { xs: 3, md: 10 },
-          backgroundColor: "#f5f6fa",
+          backgroundColor: theme.palette.background.default,
           px: { xs: 2, sm: 3 },
-        }}
+        })}
       >
         {/* LEFT SIDEBAR */}
         <Box
@@ -305,7 +312,26 @@ export default function HomePage() {
               Gợi ý bạn bè 👥
             </Typography>
 
-            <Box sx={{ maxHeight: 280, overflowY: "auto", pr: 1 }}>
+            <Box
+              sx={(theme) => ({
+                maxHeight: 280,
+                overflowY: "auto",
+                pr: 1,
+                "&::-webkit-scrollbar": {
+                  width: 8,
+                },
+                "&::-webkit-scrollbar-track": {
+                  background: theme.palette.background.paper,
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: theme.palette.primary.main,
+                  borderRadius: 8,
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  background: theme.palette.primary.dark,
+                },
+              })}
+            >
               {users?.map((user) => (
                 <Box
                   key={user.id}
@@ -354,7 +380,7 @@ export default function HomePage() {
               <Link key={post.id} href={`/posts/${post.id}`} passHref>
                 <Box
                   component="a"
-                  sx={{
+                  sx={(theme) => ({
                     mb: 2,
                     display: "flex",
                     alignItems: "center",
@@ -363,9 +389,9 @@ export default function HomePage() {
                     borderRadius: 2,
                     cursor: "pointer",
                     "&:hover": {
-                      backgroundColor: "#e2e5f1ff",
+                      backgroundColor: theme.palette.action.hover,
                     },
-                  }}
+                  })}
                 >
                   <Box>
                     <Box display="flex" alignItems="center" gap={1}>
@@ -406,15 +432,15 @@ export default function HomePage() {
               Banner
             </Typography>
             <Box
-              sx={{
-                bgcolor: "#eee",
+              sx={(theme) => ({
+                bgcolor: theme.palette.background.paper,
                 height: 150,
                 borderRadius: 2,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: "bold",
-              }}
+              })}
             >
               Banner
             </Box>

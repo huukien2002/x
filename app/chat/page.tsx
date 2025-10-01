@@ -355,7 +355,35 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="w-full md:w-3/4 h-full ">
+      <Box
+        sx={(theme) => ({
+          width: { xs: "100%", md: "75%" },
+          height: "100%",
+          overflowY: "auto", // ✅ thêm dòng này để có scrollbar
+          "&::-webkit-scrollbar": {
+            width: 8,
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.grey[700]
+                : theme.palette.grey[400],
+            borderRadius: 4,
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.background.default
+                : theme.palette.grey[200],
+          },
+          /* Firefox support */
+          scrollbarWidth: "thin",
+          scrollbarColor:
+            theme.palette.mode === "dark"
+              ? `${theme.palette.grey[700]} ${theme.palette.background.default}`
+              : `${theme.palette.grey[400]} ${theme.palette.grey[200]}`,
+        })}
+      >
         {selectedUser ? (
           <>
             <Box p={2} borderBottom="1px solid #ccc">
@@ -527,7 +555,7 @@ export default function ChatPage() {
             <Typography sx={{ mt: 2 }}>Select a user to chat</Typography>
           </Box>
         )}
-      </div>
+      </Box>
     </div>
   );
 }
