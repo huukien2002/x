@@ -16,7 +16,6 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
-import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 interface Props {
@@ -36,69 +35,7 @@ export default function CheckoutSuccessPage() {
     "loading" | "success" | "already_completed" | "error"
   >("loading");
 
-  // useEffect(() => {
-  //   const processTransaction = async () => {
-  //     try {
-  //       if (!email || !amount || !transactionId) {
-  //         setStatus("error");
-  //         return;
-  //       }
-
-  //       const txRef = doc(db, "transactions", transactionId);
-  //       const txSnap = await getDoc(txRef);
-
-  //       if (!txSnap.exists()) {
-  //         await setDoc(txRef, {
-  //           email,
-  //           amount,
-  //           status: "pending",
-  //           createdAt: Date.now(),
-  //         });
-  //       }
-
-  //       const txData = (await getDoc(txRef)).data();
-
-  //       if (txData?.status !== "completed") {
-  //         const q = query(collection(db, "users"), where("email", "==", email));
-  //         const snapshot = await getDocs(q);
-
-  //         if (!snapshot.empty) {
-  //           const userDoc = snapshot.docs[0];
-  //           await updateDoc(userDoc.ref, {
-  //             postsRemaining: increment(amount),
-  //           });
-
-  //           const updated = await getDoc(userDoc.ref);
-
-  //           localStorage.setItem(
-  //             "user",
-  //             JSON.stringify({ id: userDoc.id, ...updated.data() })
-  //           );
-  //         }
-
-  //         await updateDoc(txRef, {
-  //           status: "completed",
-  //           completedAt: Date.now(),
-  //         });
-
-  //         setStatus("success");
-  //       } else {
-  //         setStatus("already_completed");
-  //       }
-  //     } catch (err) {
-  //       console.error("❌ Error processing transaction:", err);
-  //       setStatus("error");
-  //     }
-  //   };
-
-  //   processTransaction();
-  // }, [email, amount, transactionId]);
-
   useEffect(() => {
-    console.log("✅ email:", email);
-    console.log("✅ amount:", amount);
-    console.log("✅ transactionId:", transactionId);
-
     if (!email || !amount || !transactionId) return;
     const processTransaction = async () => {
       try {
