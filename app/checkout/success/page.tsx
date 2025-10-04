@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 interface Props {
   searchParams: {
@@ -26,10 +27,11 @@ interface Props {
   };
 }
 
-export default function CheckoutSuccessPage({ searchParams }: Props) {
-  const amount = Number(searchParams.amount || "0");
-  const email = searchParams.email;
-  const transactionId = searchParams.session_id;
+export default function CheckoutSuccessPage() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
+  const amount = Number(searchParams.get("amount") || "0");
+  const transactionId = searchParams.get("session_id") || "";
   const [status, setStatus] = useState<
     "loading" | "success" | "already_completed" | "error"
   >("loading");
