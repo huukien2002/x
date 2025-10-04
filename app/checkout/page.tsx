@@ -49,10 +49,10 @@ export default function StripeTestPage() {
           quantity: 1,
         },
       ],
-      success_url: `https://x-fe7d.vercel.app/checkout/success?amount=${amount}&email=${encodeURIComponent(
+      success_url: `http://localhost:3000/checkout/success?amount=${amount}&email=${encodeURIComponent(
         user.email
       )}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: "https://x-fe7d.vercel.app/checkout/cancel",
+      cancel_url: "http://localhost:3000/checkout/cancel",
     });
 
     const stripeJs = await loadStripe(

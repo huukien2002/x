@@ -94,7 +94,7 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
   // }, [email, amount, transactionId]);
 
   useEffect(() => {
-    console.log(1);
+    if (!email || !amount || !transactionId) return;
     const processTransaction = async () => {
       try {
         if (!email || !amount || !transactionId) {
@@ -151,7 +151,7 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
     };
 
     processTransaction();
-  }, [email, amount, transactionId,router]);
+  }, [email, amount, transactionId]);
 
   const renderMessage = () => {
     switch (status) {
