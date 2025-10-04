@@ -30,7 +30,6 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
   const amount = Number(searchParams.amount || "0");
   const email = searchParams.email;
   const transactionId = searchParams.session_id;
-  const router = useRouter();
   const [status, setStatus] = useState<
     "loading" | "success" | "already_completed" | "error"
   >("loading");
@@ -94,6 +93,10 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
   // }, [email, amount, transactionId]);
 
   useEffect(() => {
+    console.log("✅ email:", email);
+    console.log("✅ amount:", amount);
+    console.log("✅ transactionId:", transactionId);
+
     if (!email || !amount || !transactionId) return;
     const processTransaction = async () => {
       try {
