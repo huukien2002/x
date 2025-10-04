@@ -16,6 +16,7 @@ import {
   Select,
   MenuItem,
   InputLabel,
+  Pagination,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -183,10 +184,12 @@ const ProfilePage: React.FC = () => {
   return (
     <Box
       sx={{
+        width: { xs: "100%", sm: "auto" },
         maxWidth: 1000,
         margin: { xs: 0, sm: "0 auto" },
         mt: { xs: 2, sm: 4 },
         px: 2,
+        pb: 2,
       }}
     >
       {/* Header User */}
@@ -432,28 +435,17 @@ const ProfilePage: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Box py={2} display="flex" justifyContent="center" mt={3} gap={1}>
-              <Button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-              >
-                Prev
-              </Button>
-              {[...Array(totalPages)].map((_, idx) => (
-                <Button
-                  key={idx}
-                  variant={currentPage === idx + 1 ? "contained" : "outlined"}
-                  onClick={() => setCurrentPage(idx + 1)}
-                >
-                  {idx + 1}
-                </Button>
-              ))}
-              <Button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-              >
-                Next
-              </Button>
+            <Box
+              sx={{ mt: 3, pb: 3, display: "flex", justifyContent: "center" }}
+            >
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={(_, page) => setCurrentPage(page)}
+                color="primary"
+                size="large"
+                variant="outlined"
+              />
             </Box>
           )}
         </>

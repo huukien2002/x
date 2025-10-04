@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { db } from "../../../lib/firebase.config";
 import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import PostCard from "./PostCard";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Pagination } from "@mui/material";
 
 interface User {
   id: string;
@@ -134,30 +134,15 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <Box py={2} display="flex" justifyContent="center" mt={3} gap={1}>
-          <Button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-          >
-            Prev
-          </Button>
-
-          {[...Array(totalPages)].map((_, idx) => (
-            <Button
-              key={idx}
-              variant={currentPage === idx + 1 ? "contained" : "outlined"}
-              onClick={() => setCurrentPage(idx + 1)}
-            >
-              {idx + 1}
-            </Button>
-          ))}
-
-          <Button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-          >
-            Next
-          </Button>
+        <Box py={2} display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={totalPages} // Tổng số trang
+            page={currentPage} // Trang hiện tại
+            onChange={(_, page) => setCurrentPage(page)} // Hàm đổi trang
+            color="primary"
+            size="large" // small | medium | large
+            variant="outlined"
+          />
         </Box>
       )}
     </Box>
