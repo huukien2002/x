@@ -16,6 +16,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
+import { useRouter } from "next/navigation";
 
 interface Props {
   searchParams: {
@@ -29,7 +30,7 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
   const amount = Number(searchParams.amount || "0");
   const email = searchParams.email;
   const transactionId = searchParams.session_id;
-
+  const router = useRouter();
   const [status, setStatus] = useState<
     "loading" | "success" | "already_completed" | "error"
   >("loading");
@@ -93,6 +94,7 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
   // }, [email, amount, transactionId]);
 
   useEffect(() => {
+    console.log(1);
     const processTransaction = async () => {
       try {
         if (!email || !amount || !transactionId) {
@@ -149,7 +151,7 @@ export default function CheckoutSuccessPage({ searchParams }: Props) {
     };
 
     processTransaction();
-  }, [email, amount, transactionId]);
+  }, [email, amount, transactionId,router]);
 
   const renderMessage = () => {
     switch (status) {
