@@ -200,12 +200,32 @@ export default function PostDetail() {
         </Typography>
 
         <Box
-          sx={{
-            maxHeight: 200,
+          sx={(theme) => ({
+            height: 400,
             overflowY: "auto",
-            pr: 1,
+            maxHeight: 200,
             mb: 2,
-          }}
+            bgcolor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            pr: 1,
+            /* Custom scrollbar */
+            "&::-webkit-scrollbar": {
+              width: 8,
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.grey[700]
+                  : theme.palette.grey[400],
+              borderRadius: 4,
+            },
+            "&::-webkit-scrollbar-track": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.background.default
+                  : theme.palette.grey[200],
+            },
+          })}
         >
           {comments.length > 0 ? (
             comments.map((c) => {
@@ -213,12 +233,21 @@ export default function PostDetail() {
               return (
                 <Box
                   key={c.id}
-                  sx={{
+                  sx={(theme) => ({
                     mb: 2,
                     p: 1.5,
-                    border: "1px solid #eee",
                     borderRadius: 2,
-                  }}
+                    backgroundColor:
+                      theme.palette.mode === "light"
+                        ? theme.palette.grey[100]
+                        : theme.palette.grey[900],
+                    border: `1px solid ${
+                      theme.palette.mode === "light"
+                        ? theme.palette.grey[300]
+                        : theme.palette.grey[800]
+                    }`,
+                    transition: "background-color 0.3s, border-color 0.3s",
+                  })}
                 >
                   <Box
                     sx={{

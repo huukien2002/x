@@ -33,6 +33,16 @@ export default function FriendPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [friendships, setFriendships] = useState<any[]>([]);
 
+  // Set laoding button
+  const [requestStatus, setRequestStatus] = useState<{
+    [email: string]: "loading" | "sent";
+  }>({});
+  const [requestActionStatus, setRequestActionStatus] = useState<{
+    [id: string]: "loading" | "done";
+  }>({});
+
+  const [loadingRemoveId, setLoadingRemoveId] = useState<string | null>(null);
+
   // 📌 Lấy danh sách users
   const fetchUsers = async () => {
     const snap = await getDocs(collection(db, "users"));
@@ -85,9 +95,21 @@ export default function FriendPage() {
   };
 
   // 📌 Hủy bạn hoặc từ chối lời mời
+  // const removeFriendship = async (friendshipId: string) => {
+  //   await deleteDoc(doc(db, "friendships", friendshipId));
+  //   fetchFriendships();
+  // };
+
   const removeFriendship = async (friendshipId: string) => {
-    await deleteDoc(doc(db, "friendships", friendshipId));
-    fetchFriendships();
+    try {
+      setLoadingRemoveId(friendshipId);
+      await deleteDoc(doc(db, "friendships", friendshipId));
+      await fetchFriendships();
+    } catch (error) {
+      console.error("Lỗi khi xoá bạn:", error);
+    } finally {
+      setLoadingRemoveId(null);
+    }
   };
 
   // 📌 Helper kiểm tra trạng thái
@@ -110,14 +132,6 @@ export default function FriendPage() {
   const otherUsers = users.filter(
     (u) => u.email !== currentUserEmail && !getFriendship(u.email)
   );
-
-  // Set laoding button
-  const [requestStatus, setRequestStatus] = useState<{
-    [email: string]: "loading" | "sent";
-  }>({});
-  const [requestActionStatus, setRequestActionStatus] = useState<{
-    [id: string]: "loading" | "done";
-  }>({});
 
   if (!user) return null;
 
@@ -255,6 +269,7 @@ export default function FriendPage() {
                         size="small"
                         variant="outlined"
                         color="error"
+                        disabled={loadingRemoveId === f.id}
                         onClick={() => removeFriendship(f.id)}
                       >
                         Xóa bạn
@@ -419,6 +434,7 @@ export default function FriendPage() {
                         size="small"
                         variant="outlined"
                         color="error"
+                        disabled={loadingRemoveId === f.id}
                         onClick={() => removeFriendship(f.id)}
                       >
                         Huỷ lời mời
