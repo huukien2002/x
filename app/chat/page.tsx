@@ -290,7 +290,7 @@ export default function ChatPage() {
     <div className="flex flex-col flex-1 sm:flex-row">
       <div className="md:w-1/4 w-full h-full border-r border-gray-300 flex flex-col">
         {/* Header */}
-        <div className="h-[80px] flex items-center px-3 text-lg  border-b border-gray-300">
+        <div className="h-[80px] font-bold flex items-center px-3 text-lg  border-b border-gray-300">
           Users
         </div>
 
@@ -327,6 +327,7 @@ export default function ChatPage() {
                           minWidth: 15,
                           borderRadius: "50%",
                           border: "2px solid white", // tạo viền trắng giống Messenger
+                          fontWeight: "bold",
                         },
                       }}
                     >
@@ -388,7 +389,7 @@ export default function ChatPage() {
           <>
             <Box p={2} borderBottom="1px solid #ccc">
               <Typography variant="h6">
-                Chat with{" "}
+                <span style={{ fontWeight: "bold" }}>Chat with</span>{" "}
                 <span style={{ fontWeight: "bold", color: "#1976d2" }}>
                   {selectedUser.username}
                 </span>
