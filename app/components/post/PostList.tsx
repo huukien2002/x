@@ -4,6 +4,7 @@ import { db } from "../../../lib/firebase.config";
 import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import PostCard from "./PostCard";
 import { Box, Button, Pagination } from "@mui/material";
+import PaginationCustom from "../PaginationCustom";
 
 interface User {
   id: string;
@@ -135,13 +136,16 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
       {/* Pagination */}
       {totalPages > 1 && (
         <Box py={2} display="flex" justifyContent="center" mt={3}>
-          <Pagination
+          {/* <Pagination
             count={totalPages} // Tổng số trang
             page={currentPage} // Trang hiện tại
             onChange={(_, page) => setCurrentPage(page)} // Hàm đổi trang
-            color="primary"
-            size="large" // small | medium | large
-            variant="outlined"
+           
+          /> */}
+          <PaginationCustom
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={(page) => setCurrentPage(page)}
           />
         </Box>
       )}

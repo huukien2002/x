@@ -23,6 +23,7 @@ import { db, rtdb } from "@/lib/firebase.config";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { toast } from "react-toastify";
 import ToggleThemeButton from "@/app/lib/ToggleThemeButton";
+import Image from "next/image";
 
 // 🔹 Import ThemeContext
 
@@ -181,8 +182,19 @@ const Header = () => {
   return (
     <AppBar position="static" color="primary">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography onClick={() => router.push("/")} variant="h6" component="div" sx={{ cursor: "pointer",fontWeight: "bold" }}>
-          Blog
+        <Typography
+          onClick={() => router.push("/")}
+          variant="h4"
+          component="div"
+          sx={{ cursor: "pointer", fontWeight: "bold" , display: "flex", alignItems: "center" , gap: 1 }}
+        >
+          <Image
+            src="/favicon.ico"
+            alt="Logo"
+            width={32}
+            height={32}
+          />{" "}
+          Posty
         </Typography>
 
         {/* Desktop menu */}

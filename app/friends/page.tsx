@@ -141,7 +141,7 @@ export default function FriendPage() {
         {/* 🌍 Người dùng khác */}
         <Card variant="outlined">
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight={"bold"} gutterBottom>
               Bạn bè đề xuất
             </Typography>
             {otherUsers.length === 0 ? (
@@ -242,7 +242,7 @@ export default function FriendPage() {
         {/* ✅ Bạn bè */}
         <Card variant="outlined" sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight={"bold"} gutterBottom>
               Bạn bè
             </Typography>
             {friends.length === 0 ? (
@@ -285,7 +285,7 @@ export default function FriendPage() {
         {/* 📩 Lời mời đến */}
         <Card variant="outlined" sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight={"bold"} gutterBottom>
               Lời mời kết bạn
             </Typography>
             {friendRequests.length === 0 ? (
@@ -409,7 +409,7 @@ export default function FriendPage() {
         {/* 📤 Lời mời đã gửi */}
         <Card variant="outlined" sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight={"bold"} gutterBottom>
               Lời mời đã gửi
             </Typography>
             {sentRequests.length === 0 ? (

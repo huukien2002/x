@@ -10,12 +10,14 @@ import {
   Avatar,
   Stack,
   Divider,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { db } from "../../lib/firebase.config";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { toast } from "react-toastify";
-import { Google } from "@mui/icons-material";
+import { Google, Visibility, VisibilityOff } from "@mui/icons-material";
 interface RegisterForm {
   username: string;
   email: string;
@@ -26,6 +28,8 @@ interface RegisterForm {
 export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
   const { handleSubmit, control, register, reset } = useForm<RegisterForm>({
     defaultValues: {
       username: "",
@@ -217,11 +221,23 @@ export default function RegisterPage() {
                 <TextField
                   {...field}
                   label="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   variant="outlined"
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                   fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               )}
             />

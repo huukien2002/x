@@ -38,6 +38,7 @@ import { Dayjs } from "dayjs";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { alpha } from "@mui/material/styles";
+import ProfileAvatar from "../components/ProfileAvatar";
 
 interface Post {
   id: string;
@@ -194,9 +195,10 @@ const ProfilePage: React.FC = () => {
     >
       {/* Header User */}
       <Box display="flex" alignItems="center" mb={4}>
-        <Avatar src={user.avatar} sx={{ width: 60, height: 60, mr: 2 }}>
+        {/* <Avatar src={user.avatar} sx={{ width: 60, height: 60, mr: 2 }}>
           {user.username?.[0] || user.email[0]}
-        </Avatar>
+        </Avatar> */}
+        <ProfileAvatar />
         <Box>
           <Typography variant="h5">{user.username || user.email}</Typography>
           <Typography variant="body2">{posts.length} posts</Typography>
