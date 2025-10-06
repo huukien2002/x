@@ -68,7 +68,7 @@ export default function ProfileAvatar() {
       {/* click vào avatar để chọn ảnh */}
       <label htmlFor="avatar-upload" style={{ cursor: "pointer" }}>
         <Avatar
-          src={preview}
+          src={preview || user?.avatar}
           sx={{
             width: 60,
             height: 60,
