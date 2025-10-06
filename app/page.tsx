@@ -127,10 +127,10 @@ export default function HomePage() {
   }, []);
 
   // Search Posts
-  const filtered = posts.filter((p) =>
+  const filtered = posts?.filter((p) =>
     (p.title ?? "").toLowerCase().includes((querySearch ?? "").toLowerCase())
   );
-
+  
   const handleSelect = (id: string) => {
     setQuerySearch("");
     router.push(`/posts/${id}`);

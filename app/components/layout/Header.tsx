@@ -186,7 +186,7 @@ const Header = () => {
   return (
     <AppBar position="static" color="primary">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6" component="div">
+        <Typography sx={{fontWeight: "bold"}} variant="h5" component="div">
           Blog
         </Typography>
 
