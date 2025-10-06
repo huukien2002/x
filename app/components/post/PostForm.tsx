@@ -250,6 +250,7 @@ export default function PostForm({ userId, onPostAdded }: PostFormProps) {
           <Box
             sx={{
               mt: 1,
+              mb: 3,
               width: 150,
               height: 150,
               borderRadius: 3,

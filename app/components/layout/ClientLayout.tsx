@@ -5,6 +5,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ThemeRegistry from "@/app/lib/theme-implementation";
 
 interface Props {
   children: React.ReactNode;
@@ -12,28 +13,30 @@ interface Props {
 
 const ClientLayout = ({ children }: Props) => {
   return (
-    <Box
-      sx={(theme) => ({
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        bgcolor: theme.palette.background.default,
-        color: theme.palette.text.primary,
-      })}
-    >
-      <Header />
+    <ThemeRegistry>
       <Box
-        sx={{
-          flex: 1,
+        sx={(theme) => ({
           display: "flex",
-          minHeight: 0,
-        }}
+          flexDirection: "column",
+          minHeight: "100vh",
+          bgcolor: theme.palette.background.default,
+          color: theme.palette.text.primary,
+        })}
       >
-        {children}
+        <Header />
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            minHeight: 0,
+          }}
+        >
+          {children}
+        </Box>
+        <ToastContainer />
+        <Footer />
       </Box>
-      <ToastContainer />
-      <Footer />
-    </Box>
+    </ThemeRegistry>
   );
 };
 

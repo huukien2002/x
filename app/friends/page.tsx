@@ -33,6 +33,16 @@ export default function FriendPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [friendships, setFriendships] = useState<any[]>([]);
 
+  // Set laoding button
+  const [requestStatus, setRequestStatus] = useState<{
+    [email: string]: "loading" | "sent";
+  }>({});
+  const [requestActionStatus, setRequestActionStatus] = useState<{
+    [id: string]: "loading" | "done";
+  }>({});
+
+  const [loadingRemoveId, setLoadingRemoveId] = useState<string | null>(null);
+
   // 📌 Lấy danh sách users
   const fetchUsers = async () => {
     const snap = await getDocs(collection(db, "users"));
@@ -85,9 +95,21 @@ export default function FriendPage() {
   };
 
   // 📌 Hủy bạn hoặc từ chối lời mời
+  // const removeFriendship = async (friendshipId: string) => {
+  //   await deleteDoc(doc(db, "friendships", friendshipId));
+  //   fetchFriendships();
+  // };
+
   const removeFriendship = async (friendshipId: string) => {
-    await deleteDoc(doc(db, "friendships", friendshipId));
-    fetchFriendships();
+    try {
+      setLoadingRemoveId(friendshipId);
+      await deleteDoc(doc(db, "friendships", friendshipId));
+      await fetchFriendships();
+    } catch (error) {
+      console.error("Lỗi khi xoá bạn:", error);
+    } finally {
+      setLoadingRemoveId(null);
+    }
   };
 
   // 📌 Helper kiểm tra trạng thái
@@ -153,7 +175,50 @@ export default function FriendPage() {
                   },
                 })}
               >
-                {otherUsers.map((u) => (
+                {otherUsers.map((u) => {
+                  const status = requestStatus[u.email];
+
+                  return (
+                    <ListItem key={u.id} divider>
+                      <ListItemAvatar>
+                        <Avatar src={u.avatar} />
+                      </ListItemAvatar>
+                      <ListItemText primary={u.username} secondary={u.email} />
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={status === "loading" || status === "sent"}
+                        onClick={async () => {
+                          setRequestStatus((prev) => ({
+                            ...prev,
+                            [u.email]: "loading",
+                          }));
+                          try {
+                            await sendRequest(u.email);
+                            setRequestStatus((prev) => ({
+                              ...prev,
+                              [u.email]: "sent",
+                            }));
+                          } catch {
+                            setRequestStatus((prev) => {
+                              const updated = { ...prev };
+                              delete updated[u.email];
+                              return updated;
+                            });
+                          }
+                        }}
+                      >
+                        {status === "loading"
+                          ? "Đang gửi..."
+                          : status === "sent"
+                          ? "Đã gửi"
+                          : "Kết bạn"}
+                      </Button>
+                    </ListItem>
+                  );
+                })}
+
+                {/* {otherUsers.map((u) => (
                   <ListItem key={u.id} divider>
                     <ListItemAvatar>
                       <Avatar src={u.avatar} />
@@ -167,7 +232,7 @@ export default function FriendPage() {
                       Kết bạn
                     </Button>
                   </ListItem>
-                ))}
+                ))} */}
               </Box>
             )}
           </CardContent>
@@ -204,6 +269,7 @@ export default function FriendPage() {
                         size="small"
                         variant="outlined"
                         color="error"
+                        disabled={loadingRemoveId === f.id}
                         onClick={() => removeFriendship(f.id)}
                       >
                         Xóa bạn
@@ -228,7 +294,7 @@ export default function FriendPage() {
               </Typography>
             ) : (
               <List>
-                {friendRequests.map((f) => {
+                {/* {friendRequests.map((f) => {
                   const sender = users.find((u) => u.email === f.from);
                   if (!sender) return null;
                   return (
@@ -256,6 +322,81 @@ export default function FriendPage() {
                         onClick={() => removeFriendship(f.id)}
                       >
                         Từ chối
+                      </Button>
+                    </ListItem>
+                  );
+                })} */}
+                {friendRequests.map((f) => {
+                  const sender = users.find((u) => u.email === f.from);
+                  if (!sender) return null;
+
+                  const status = requestActionStatus[f.id];
+
+                  return (
+                    <ListItem key={f.id} divider>
+                      <ListItemAvatar>
+                        <Avatar src={sender.avatar} />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={sender.username}
+                        secondary={sender.email}
+                      />
+
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        sx={{ mr: 1, ml: 2 }}
+                        disabled={status === "loading" || status === "done"}
+                        onClick={async () => {
+                          setRequestActionStatus((prev) => ({
+                            ...prev,
+                            [f.id]: "loading",
+                          }));
+                          try {
+                            await acceptRequest(f.id);
+                            setRequestActionStatus((prev) => ({
+                              ...prev,
+                              [f.id]: "done",
+                            }));
+                          } catch {
+                            setRequestActionStatus((prev) => {
+                              const copy = { ...prev };
+                              delete copy[f.id];
+                              return copy;
+                            });
+                          }
+                        }}
+                      >
+                        {status === "loading" ? "Đang xử lý..." : "Chấp nhận"}
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        disabled={status === "loading" || status === "done"}
+                        onClick={async () => {
+                          setRequestActionStatus((prev) => ({
+                            ...prev,
+                            [f.id]: "loading",
+                          }));
+                          try {
+                            await removeFriendship(f.id);
+                            setRequestActionStatus((prev) => ({
+                              ...prev,
+                              [f.id]: "done",
+                            }));
+                          } catch {
+                            setRequestActionStatus((prev) => {
+                              const copy = { ...prev };
+                              delete copy[f.id];
+                              return copy;
+                            });
+                          }
+                        }}
+                      >
+                        {status === "loading" ? "Đang xử lý..." : "Từ chối"}
                       </Button>
                     </ListItem>
                   );
@@ -293,6 +434,7 @@ export default function FriendPage() {
                         size="small"
                         variant="outlined"
                         color="error"
+                        disabled={loadingRemoveId === f.id}
                         onClick={() => removeFriendship(f.id)}
                       >
                         Huỷ lời mời
