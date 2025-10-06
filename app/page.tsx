@@ -127,10 +127,15 @@ export default function HomePage() {
   }, []);
 
   // Search Posts
-  const filtered = posts?.filter((p) =>
-    (p.title ?? "").toLowerCase().includes((querySearch ?? "").toLowerCase())
-  );
-  
+  // const filtered = posts?.filter((p) =>
+  //   (p.title ?? "").toLowerCase().includes((querySearch ?? "").toLowerCase())
+  // );
+  const filtered = (posts ?? []).filter((p) => {
+    const title = typeof p?.title === "string" ? p.title.toLowerCase() : "";
+    const query =
+      typeof querySearch === "string" ? querySearch.toLowerCase() : "";
+    return title.includes(query);
+  });
   const handleSelect = (id: string) => {
     setQuerySearch("");
     router.push(`/posts/${id}`);
