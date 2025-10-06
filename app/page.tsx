@@ -128,7 +128,7 @@ export default function HomePage() {
 
   // Search Posts
   const filtered = posts.filter((p) =>
-    p.title.toLowerCase().includes(querySearch.toLowerCase() || "")
+    (p.title ?? "").toLowerCase().includes((querySearch ?? "").toLowerCase())
   );
 
   const handleSelect = (id: string) => {
