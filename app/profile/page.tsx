@@ -42,7 +42,8 @@ import { alpha } from "@mui/material/styles";
 import ProfileAvatar from "../components/ProfileAvatar";
 import CollectionManager from "../components/UserCollectionsManager";
 import PostActions from "../components/handleAddToCollection";
-
+import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
 interface Post {
   id: string;
   title: string;
@@ -58,6 +59,8 @@ interface Post {
 const ProfilePage: React.FC = () => {
   const user = useUser();
   const [openCollection, setOpenCollection] = useState(false);
+  const [openFilter, setOpenFilter] = useState(false);
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
@@ -278,16 +281,15 @@ const ProfilePage: React.FC = () => {
   return (
     <Box
       sx={{
-        width: { xs: "100%", sm: "auto" },
-        maxWidth: 1000,
         margin: { xs: 0, sm: "0 auto" },
         mt: { xs: 2, sm: 4 },
         px: 2,
         pb: 2,
+        width: { xs: "100%", sm: "60%" },
       }}
     >
       {/* Header User */}
-      <Box display="flex" alignItems="center" mb={4}>
+      <Box display="flex" alignItems="center" mb={4} width={"100%"}>
         <ProfileAvatar />
         <Box>
           <Typography variant="h5">{user.username || user.email}</Typography>
@@ -295,10 +297,70 @@ const ProfilePage: React.FC = () => {
         </Box>
       </Box>
 
-      <Button
-        startIcon={<PermMediaIcon />}
-        onClick={() => setOpenCollection((prev) => !prev)}
-      />
+      <Box
+        display="flex"
+        gap={2}
+        mb={4}
+        width="100%"
+        sx={{
+          justifyContent: { xs: "center", sm: "flex-start" },
+          flexWrap: "wrap",
+        }}
+      >
+        {/* Collection Button */}
+        <Button
+          startIcon={openCollection ? <CloseIcon /> : <PermMediaIcon />}
+          onClick={() => setOpenCollection((prev) => !prev)}
+          variant="contained"
+          sx={(theme) => ({
+            textTransform: "none",
+            borderRadius: 2,
+            px: 3,
+            py: 1.2,
+            backgroundColor: openCollection
+              ? theme.palette.primary.dark
+              : theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            boxShadow: openCollection ? theme.shadows[4] : theme.shadows[2],
+            "&:hover": {
+              backgroundColor: openCollection
+                ? theme.palette.primary.main
+                : theme.palette.primary.dark,
+              boxShadow: theme.shadows[4],
+            },
+          })}
+        >
+          {openCollection ? "Collection (Mở)" : "Collection"}
+        </Button>
+
+        {/* Filter Button */}
+        <Button
+          startIcon={openFilter ? <CloseIcon /> : <SearchIcon />}
+          onClick={() => setOpenFilter((prev) => !prev)}
+          variant="outlined"
+          sx={(theme) => ({
+            textTransform: "none",
+            borderRadius: 2,
+            px: 3,
+            py: 1.2,
+            color: openFilter
+              ? theme.palette.primary.dark
+              : theme.palette.primary.main,
+            borderColor: openFilter
+              ? theme.palette.primary.dark
+              : theme.palette.primary.main,
+            backgroundColor: openFilter
+              ? theme.palette.action.hover
+              : "transparent",
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+              borderColor: theme.palette.primary.dark,
+            },
+          })}
+        >
+          {openFilter ? "Filter (Mở)" : "Filter"}
+        </Button>
+      </Box>
 
       {openCollection && (
         <Box mb={4} width={"100%"}>
@@ -309,92 +371,96 @@ const ProfilePage: React.FC = () => {
         </Box>
       )}
 
-      {/* Filter Date + Favorite */}
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box
-          display="flex"
-          flexDirection={{ xs: "column", sm: "row"}}
-          gap={2}
-          mb={2}
-          pt={2}
-        >
-          <DatePicker
-            label="Start Date"
-            value={startDate}
-            onChange={(newValue) => setStartDate(newValue)}
-            slotProps={{ textField: { variant: "outlined" } }}
-          />
-          <DatePicker
-            label="End Date"
-            value={endDate}
-            onChange={(newValue) => setEndDate(newValue)}
-            slotProps={{ textField: { variant: "outlined" } }}
-          />
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Favorite</InputLabel>
-            <Select
-              value={favoriteFilter}
-              label="Favorite"
-              onChange={(e) => setFavoriteFilter(e.target.value as any)}
+      {openFilter && (
+        <Box minWidth={"100%"}>
+          {/* Filter Date + Favorite */}
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box
+              display="flex"
+              flexDirection={{ xs: "column", sm: "row" }}
+              gap={2}
+              mb={2}
+              pt={2}
             >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="favorite">Favorite</MenuItem>
-              <MenuItem value="notFavorite">Not Favorite</MenuItem>
-            </Select>
-          </FormControl>
+              <DatePicker
+                label="Start Date"
+                value={startDate}
+                onChange={(newValue) => setStartDate(newValue)}
+                slotProps={{ textField: { variant: "outlined" } }}
+              />
+              <DatePicker
+                label="End Date"
+                value={endDate}
+                onChange={(newValue) => setEndDate(newValue)}
+                slotProps={{ textField: { variant: "outlined" } }}
+              />
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel>Favorite</InputLabel>
+                <Select
+                  value={favoriteFilter}
+                  label="Favorite"
+                  onChange={(e) => setFavoriteFilter(e.target.value as any)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="favorite">Favorite</MenuItem>
+                  <MenuItem value="notFavorite">Not Favorite</MenuItem>
+                </Select>
+              </FormControl>
 
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Visible</InputLabel>
-            <Select
-              value={visibleFilter}
-              label="Visible"
-              onChange={(e) => setVisibleFilter(e.target.value as any)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="visible">Visible</MenuItem>
-              <MenuItem value="notVisible">Not Visible</MenuItem>
-            </Select>
-          </FormControl>
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel>Visible</InputLabel>
+                <Select
+                  value={visibleFilter}
+                  label="Visible"
+                  onChange={(e) => setVisibleFilter(e.target.value as any)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="visible">Visible</MenuItem>
+                  <MenuItem value="notVisible">Not Visible</MenuItem>
+                </Select>
+              </FormControl>
 
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Collection</InputLabel>
-            <Select
-              value={selectedCollection}
-              label="Collection"
-              onChange={(e) => setSelectedCollection(e.target.value)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              {collections.map((col) => (
-                <MenuItem key={col.id} value={col.id}>
-                  {col.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel>Collection</InputLabel>
+                <Select
+                  value={selectedCollection}
+                  label="Collection"
+                  onChange={(e) => setSelectedCollection(e.target.value)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  {collections.map((col) => (
+                    <MenuItem key={col.id} value={col.id}>
+                      {col.title}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box display="flex" gap={2} mb={4}>
+              <Button
+                variant="contained"
+                onClick={() => fetchUserPosts(user.email)}
+              >
+                Filter
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                  setFavoriteFilter("all");
+                  fetchUserPosts(user.email);
+                  setSelectedCollection("all");
+                }}
+              >
+                Clear
+              </Button>
+            </Box>
+          </LocalizationProvider>
         </Box>
-
-        <Box display="flex" gap={2} mb={4}>
-          <Button
-            variant="contained"
-            onClick={() => fetchUserPosts(user.email)}
-          >
-            Filter
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => {
-              setStartDate(null);
-              setEndDate(null);
-              setFavoriteFilter("all");
-              fetchUserPosts(user.email);
-              setSelectedCollection("all");
-            }}
-          >
-            Clear
-          </Button>
-        </Box>
-      </LocalizationProvider>
+      )}
 
       {selectedCollection !== "all" && (
         <Typography variant="h5" mb={2} sx={{ fontWeight: "bold" }}>

@@ -118,7 +118,7 @@ export default function CollectionManager({
 
   return (
     <Box
-      // maxWidth={"700px"}
+      maxWidth={"100%"}
       mx="auto"
       mt={4}
       display="flex"
