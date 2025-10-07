@@ -54,9 +54,9 @@ const Header = () => {
       const arrowSteps = ["", "->", "-->"];
       const arrow = arrowSteps[step % arrowSteps.length];
 
-      if (hasUnread && hasFriendRequest) return `${arrow} 💌 & 👥`;
+      if (hasUnread && hasFriendRequest) return `${arrow} 💌 & 📩`;
       if (hasUnread) return `${arrow} 💌`;
-      if (hasFriendRequest) return `${arrow} 👥`;
+      if (hasFriendRequest) return `${arrow} 📩`;
       return originalTitle;
     };
 

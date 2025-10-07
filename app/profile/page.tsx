@@ -21,6 +21,7 @@ import {
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import DownloadIcon from "@mui/icons-material/Download";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import PermMediaIcon from "@mui/icons-material/PermMedia";
 import {
   collection,
   query,
@@ -39,6 +40,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { alpha } from "@mui/material/styles";
 import ProfileAvatar from "../components/ProfileAvatar";
+import CollectionManager from "../components/UserCollectionsManager";
+import PostActions from "../components/handleAddToCollection";
 
 interface Post {
   id: string;
@@ -54,9 +57,12 @@ interface Post {
 
 const ProfilePage: React.FC = () => {
   const user = useUser();
+  const [openCollection, setOpenCollection] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState("all");
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
@@ -72,6 +78,62 @@ const ProfilePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 8;
 
+  // const fetchUserPosts = async (email: string) => {
+  //   setLoading(true);
+  //   try {
+  //     const postsRef = collection(db, "posts");
+  //     const q = query(postsRef, where("authorId", "==", email));
+  //     const snapshot = await getDocs(q);
+
+  //     let data: Post[] = snapshot.docs.map((doc) => {
+  //       const docData = doc.data();
+  //       return {
+  //         id: doc.id,
+  //         title: docData.title || "",
+  //         thrilled: docData.content || "",
+  //         imageUrl: docData.imageUrl || "",
+  //         createdAt: Number(docData.createdAt) || Date.now(),
+  //         sent: Boolean(docData.sent) || false,
+  //         authorId: docData.authorId || "",
+  //         favorite: docData.favorite ?? false,
+  //         visible: docData.visible ?? false,
+  //       };
+  //     });
+
+  //     if (selectedCollection !== "all") {
+  //       const collectionData = collections.find(
+  //         (c) => c.id === selectedCollection
+  //       );
+  //       if (collectionData?.postIds?.length) {
+  //         data = data.filter((p) => collectionData.postIds.includes(p.id));
+  //       } else {
+  //         data = [];
+  //       }
+  //     }
+
+  //     // Filter theo ngày
+  //     if (startDate)
+  //       data = data.filter((p) => p.createdAt >= startDate.valueOf());
+  //     if (endDate) data = data.filter((p) => p.createdAt <= endDate.valueOf());
+
+  //     // Filter favorite
+  //     if (favoriteFilter === "favorite") data = data.filter((p) => p.favorite);
+  //     if (favoriteFilter === "notFavorite")
+  //       data = data.filter((p) => !p.favorite);
+
+  //     // Filter visible
+  //     if (visibleFilter === "visible") data = data.filter((p) => p.visible);
+  //     if (visibleFilter === "notVisible") data = data.filter((p) => !p.visible);
+
+  //     data.sort((a, b) => b.createdAt - a.createdAt);
+  //     setPosts(data);
+  //   } catch (error) {
+  //     console.error("Error fetching posts:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchUserPosts = async (email: string) => {
     setLoading(true);
     try {
@@ -80,31 +142,43 @@ const ProfilePage: React.FC = () => {
       const snapshot = await getDocs(q);
 
       let data: Post[] = snapshot.docs.map((doc) => {
-        const docData = doc.data();
+        const d = doc.data();
         return {
           id: doc.id,
-          title: docData.title || "",
-          thrilled: docData.content || "",
-          imageUrl: docData.imageUrl || "",
-          createdAt: Number(docData.createdAt) || Date.now(),
-          sent: Boolean(docData.sent) || false,
-          authorId: docData.authorId || "",
-          favorite: docData.favorite ?? false,
-          visible: docData.visible ?? false,
+          title: d.title || "",
+          thrilled: d.content || "",
+          imageUrl: d.imageUrl || "",
+          createdAt: Number(d.createdAt) || Date.now(),
+          sent: Boolean(d.sent) || false,
+          authorId: d.authorId || "",
+          favorite: d.favorite ?? false,
+          visible: d.visible ?? false,
         };
       });
 
-      // Filter theo ngày
+      if (selectedCollection && selectedCollection !== "all") {
+        const collectionData = collections.find(
+          (c) => c.id === selectedCollection
+        );
+
+        if (collectionData?.postIds?.length) {
+          const ids = collectionData.postIds.map(String);
+          data = data.filter((p) => ids.includes(String(p.id)));
+          console.log("Sau khi lọc theo bộ sưu tập:", data.length);
+        } else {
+          console.log("Không có postIds trong bộ sưu tập này");
+          data = [];
+        }
+      }
+
       if (startDate)
         data = data.filter((p) => p.createdAt >= startDate.valueOf());
       if (endDate) data = data.filter((p) => p.createdAt <= endDate.valueOf());
 
-      // Filter favorite
       if (favoriteFilter === "favorite") data = data.filter((p) => p.favorite);
       if (favoriteFilter === "notFavorite")
         data = data.filter((p) => !p.favorite);
 
-      // Filter visible
       if (visibleFilter === "visible") data = data.filter((p) => p.visible);
       if (visibleFilter === "notVisible") data = data.filter((p) => !p.visible);
 
@@ -117,12 +191,31 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // 🔹 Lấy danh sách bộ sưu tập của user
+  useEffect(() => {
+    fetchCollections();
+  }, [user?.id]);
+  const fetchCollections = async () => {
+    if (!user?.id) return;
+    const colRef = collection(db, "userCollections", user.id, "collections");
+    const snap = await getDocs(colRef);
+    const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    setCollections(data);
+  };
+
   useEffect(() => {
     if (user?.email) {
       setCurrentPage(1); // reset page khi filter thay đổi
       fetchUserPosts(user.email);
     }
-  }, [user, startDate, endDate, favoriteFilter, visibleFilter]);
+  }, [
+    user,
+    startDate,
+    endDate,
+    favoriteFilter,
+    visibleFilter,
+    selectedCollection,
+  ]);
 
   const handleDownload = async (url: string, title: string) => {
     try {
@@ -195,23 +288,35 @@ const ProfilePage: React.FC = () => {
     >
       {/* Header User */}
       <Box display="flex" alignItems="center" mb={4}>
-        {/* <Avatar src={user.avatar} sx={{ width: 60, height: 60, mr: 2 }}>
-          {user.username?.[0] || user.email[0]}
-        </Avatar> */}
         <ProfileAvatar />
         <Box>
           <Typography variant="h5">{user.username || user.email}</Typography>
-          <Typography variant="body2">{posts.length} posts</Typography>
+          <Typography variant="body2">{user.email}</Typography>
         </Box>
       </Box>
+
+      <Button
+        startIcon={<PermMediaIcon />}
+        onClick={() => setOpenCollection((prev) => !prev)}
+      />
+
+      {openCollection && (
+        <Box mb={4} width={"100%"}>
+          <CollectionManager
+            collections={collections}
+            refreshCollections={fetchCollections}
+          />
+        </Box>
+      )}
 
       {/* Filter Date + Favorite */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box
           display="flex"
-          flexDirection={{ xs: "column", sm: "row" }}
+          flexDirection={{ xs: "column", sm: "row"}}
           gap={2}
           mb={2}
+          pt={2}
         >
           <DatePicker
             label="Start Date"
@@ -250,6 +355,22 @@ const ProfilePage: React.FC = () => {
               <MenuItem value="notVisible">Not Visible</MenuItem>
             </Select>
           </FormControl>
+
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>Collection</InputLabel>
+            <Select
+              value={selectedCollection}
+              label="Collection"
+              onChange={(e) => setSelectedCollection(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              {collections.map((col) => (
+                <MenuItem key={col.id} value={col.id}>
+                  {col.title}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
         <Box display="flex" gap={2} mb={4}>
@@ -267,12 +388,21 @@ const ProfilePage: React.FC = () => {
               setEndDate(null);
               setFavoriteFilter("all");
               fetchUserPosts(user.email);
+              setSelectedCollection("all");
             }}
           >
             Clear
           </Button>
         </Box>
       </LocalizationProvider>
+
+      {selectedCollection !== "all" && (
+        <Typography variant="h5" mb={2} sx={{ fontWeight: "bold" }}>
+          <PermMediaIcon />{" "}
+          {collections &&
+            collections.find((col) => col.id == selectedCollection)?.title}
+        </Typography>
+      )}
 
       {/* Posts Grid */}
       {loading ? (
@@ -326,6 +456,10 @@ const ProfilePage: React.FC = () => {
                         gap: 1,
                       }}
                     >
+                      <PostActions
+                        post={post}
+                        refreshCollections={fetchCollections}
+                      />
                       <Tooltip title="Download">
                         <IconButton
                           size="small"
