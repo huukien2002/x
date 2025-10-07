@@ -357,10 +357,10 @@ export default function HomePage() {
 
         {/* FEED */}
         <Box sx={{ flex: 1, maxWidth: { xs: "100%", md: 500 }, mx: "auto" }}>
-          <PostForm
+          {/* <PostForm
             userId={currentUserId}
             onPostAdded={() => setRefreshKey((prev) => prev + 1)}
-          />
+          /> */}
 
           <PostList refreshKey={refreshKey} currentUserId={currentUserId} />
         </Box>

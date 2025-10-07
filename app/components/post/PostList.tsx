@@ -123,7 +123,7 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
   );
 
   return (
-    <Box sx={{ paddingBottom: 5, mt: 2 }}>
+    <Box sx={{ paddingBottom: 5 }}>
       {paginatedPosts.map((post) => (
         <PostCard
           key={post.id}

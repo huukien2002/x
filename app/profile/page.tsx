@@ -17,6 +17,8 @@ import {
   MenuItem,
   InputLabel,
   Pagination,
+  DialogTitle,
+  DialogActions,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -44,6 +46,8 @@ import CollectionManager from "../components/UserCollectionsManager";
 import PostActions from "../components/handleAddToCollection";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
+import PostForm from "../components/post/PostForm";
+import AddIcon from "@mui/icons-material/Add";
 interface Post {
   id: string;
   title: string;
@@ -58,8 +62,11 @@ interface Post {
 
 const ProfilePage: React.FC = () => {
   const user = useUser();
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const [openCollection, setOpenCollection] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
+  const [openPostForm, setOpenPostForm] = useState(false);
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -218,6 +225,7 @@ const ProfilePage: React.FC = () => {
     favoriteFilter,
     visibleFilter,
     selectedCollection,
+    refreshKey
   ]);
 
   const handleDownload = async (url: string, title: string) => {
@@ -307,6 +315,32 @@ const ProfilePage: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
+        {/* Post Button */}
+        <Button
+          startIcon={openPostForm ? <CloseIcon /> : <AddIcon />}
+          onClick={() => setOpenPostForm((prev) => !prev)}
+          variant="contained"
+          sx={(theme) => ({
+            textTransform: "none",
+            borderRadius: 2,
+            px: 3,
+            py: 1.2,
+            backgroundColor: openPostForm
+              ? theme.palette.primary.dark
+              : theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            boxShadow: openPostForm ? theme.shadows[4] : theme.shadows[2],
+            "&:hover": {
+              backgroundColor: openPostForm
+                ? theme.palette.primary.main
+                : theme.palette.primary.dark,
+              boxShadow: theme.shadows[4],
+            },
+          })}
+        >
+          {openPostForm ? "Post (Mở)" : "Post"}
+        </Button>
+
         {/* Collection Button */}
         <Button
           startIcon={openCollection ? <CloseIcon /> : <PermMediaIcon />}
@@ -361,6 +395,27 @@ const ProfilePage: React.FC = () => {
           {openFilter ? "Filter (Mở)" : "Filter"}
         </Button>
       </Box>
+
+      <Dialog
+        open={openPostForm}
+        onClose={() => setOpenPostForm(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Thêm bài viết mới</DialogTitle>
+        <DialogContent>
+          <PostForm
+            userId={user?.email}
+            onPostAdded={() => {
+              setRefreshKey((prev) => prev + 1);
+              setOpenPostForm(false);
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenPostForm(false)}>Hủy</Button>
+        </DialogActions>
+      </Dialog>
 
       {openCollection && (
         <Box mb={4} width={"100%"}>
