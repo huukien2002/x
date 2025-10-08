@@ -173,7 +173,7 @@ export default function PostFormMultiple({
       }}
     >
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+      {/* <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
         <Avatar
           src={user?.avatar || ""}
           alt={user?.username || "User"}
@@ -182,7 +182,7 @@ export default function PostFormMultiple({
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           {user?.username || "Bạn"}
         </Typography>
-      </Box>
+      </Box> */}
 
       {/* Title */}
       <TextField

@@ -634,6 +634,12 @@ const ProfilePage: React.FC = () => {
                 {post.imageUrls?.length > 0 && (
                   <PostImageSlider
                     post={post}
+                    PostActionsComponent={
+                      <PostActions
+                        post={post}
+                        refreshCollections={fetchCollections}
+                      />
+                    }
                     fetchCollections={fetchCollections}
                     setZoomImage={setZoomImage}
                     toggleFavorite={toggleFavorite}

@@ -8,12 +8,14 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import PostReactions from "./PostReactions";
 interface PostImageSliderProps {
   post: any;
   fetchCollections?: () => void;
   setZoomImage: (url: string) => void;
   toggleFavorite: (postId: string) => void;
   toggleVisible: (postId: string) => void;
+  PostActionsComponent?: React.ReactNode;
 }
 const PostImageSlider: React.FC<PostImageSliderProps> = ({
   post,
@@ -21,6 +23,7 @@ const PostImageSlider: React.FC<PostImageSliderProps> = ({
   setZoomImage,
   toggleFavorite,
   toggleVisible,
+  PostActionsComponent,
 }) => {
   const images = post.imageUrls?.length ? post.imageUrls : [post.imageUrl];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -86,6 +89,7 @@ const PostImageSlider: React.FC<PostImageSliderProps> = ({
           gap: 1,
         }}
       >
+        {PostActionsComponent &&  PostActionsComponent }
         <Tooltip title="Download">
           <IconButton
             size="small"
