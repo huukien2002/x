@@ -225,7 +225,7 @@ const ProfilePage: React.FC = () => {
     favoriteFilter,
     visibleFilter,
     selectedCollection,
-    refreshKey
+    refreshKey,
   ]);
 
   const handleDownload = async (url: string, title: string) => {
@@ -377,18 +377,16 @@ const ProfilePage: React.FC = () => {
             borderRadius: 2,
             px: 3,
             py: 1.2,
-            color: openFilter
+            backgroundColor: openCollection
               ? theme.palette.primary.dark
               : theme.palette.primary.main,
-            borderColor: openFilter
-              ? theme.palette.primary.dark
-              : theme.palette.primary.main,
-            backgroundColor: openFilter
-              ? theme.palette.action.hover
-              : "transparent",
+            color: theme.palette.primary.contrastText,
+            boxShadow: openCollection ? theme.shadows[4] : theme.shadows[2],
             "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-              borderColor: theme.palette.primary.dark,
+              backgroundColor: openCollection
+                ? theme.palette.primary.main
+                : theme.palette.primary.dark,
+              boxShadow: theme.shadows[4],
             },
           })}
         >
