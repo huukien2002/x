@@ -371,7 +371,7 @@ const ProfilePage: React.FC = () => {
         <Button
           startIcon={openFilter ? <CloseIcon /> : <SearchIcon />}
           onClick={() => setOpenFilter((prev) => !prev)}
-          variant="outlined"
+          variant="contained"
           sx={(theme) => ({
             textTransform: "none",
             borderRadius: 2,
