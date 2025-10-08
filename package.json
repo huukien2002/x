@@ -19,6 +19,7 @@
     "cloudinary": "^2.7.0",
     "dayjs": "^1.11.18",
     "firebase": "^12.2.1",
+    "firebase-admin": "^13.5.0",
     "framer-motion": "^12.23.22",
     "next": "15.5.2",
     "react": "19.1.0",

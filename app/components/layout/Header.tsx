@@ -24,6 +24,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { toast } from "react-toastify";
 import ToggleThemeButton from "@/app/lib/ToggleThemeButton";
 import Image from "next/image";
+import { getMessaging, getToken } from "firebase/messaging";
 
 // 🔹 Import ThemeContext
 
@@ -84,12 +85,35 @@ const Header = () => {
     };
   }, []);
 
-  // 🔹 Lắng nghe rooms để check unread
+  // // 🔹 Lắng nghe rooms để check unread
+  // useEffect(() => {
+  //   if (!user?.email) return;
+
+  //   const roomsRef = ref(rtdb, "rooms");
+  //   const unsubscribe = onValue(roomsRef, (snap) => {
+  //     const data = snap.val();
+  //     if (!data) {
+  //       setHasUnread(false);
+  //       return;
+  //     }
+
+  //     const rooms = Object.values<any>(data);
+  //     const found = rooms.some(
+  //       (room: any) =>
+  //         Array.isArray(room.unreadBy) && room.unreadBy.includes(user.email)
+  //     );
+  //     setHasUnread(found);
+  //   });
+
+  //   return () => off(roomsRef);
+  // }, [user?.email]);
+
   useEffect(() => {
     if (!user?.email) return;
 
     const roomsRef = ref(rtdb, "rooms");
-    const unsubscribe = onValue(roomsRef, (snap) => {
+
+    const unsubscribe = onValue(roomsRef, async (snap) => {
       const data = snap.val();
       if (!data) {
         setHasUnread(false);
@@ -101,7 +125,37 @@ const Header = () => {
         (room: any) =>
           Array.isArray(room.unreadBy) && room.unreadBy.includes(user.email)
       );
+
+      // 🔹 Giữ logic cũ: thông báo trong app
       setHasUnread(found);
+
+      // 🔹 Gửi notification về device nếu có tin nhắn mới
+      if (found) {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") return;
+          const messaging = getMessaging();
+          // Lấy device token hiện tại
+          const deviceToken = await getToken(messaging, {
+            vapidKey:
+              "BABGj89Iz012ZOTTYPDwo46uHzF96LGbLernupXvvMEwE4V022rdyMPS-9UjTo8nHBUPUY4rY7tyZk3Q_Wqd-uo", // lấy từ Firebase Console
+          });
+
+          if (deviceToken) {
+            await fetch("/api/notice", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                token: deviceToken,
+                title: "Bạn có tin nhắn mới",
+                body: "Mở app để xem ngay nào!",
+              }),
+            });
+          }
+        } catch (err) {
+          console.error("Error getting device token or sending FCM:", err);
+        }
+      }
     });
 
     return () => off(roomsRef);
@@ -186,15 +240,15 @@ const Header = () => {
           onClick={() => router.push("/")}
           variant="h4"
           component="div"
-          sx={{ cursor: "pointer", fontWeight: "bold" , display: "flex", alignItems: "center" , gap: 1 }}
+          sx={{
+            cursor: "pointer",
+            fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
         >
-          <Image
-            src="/favicon.ico"
-            alt="Logo"
-            width={32}
-            height={32}
-          />{" "}
-          Posty
+          <Image src="/favicon.ico" alt="Logo" width={32} height={32} /> Posty
         </Typography>
 
         {/* Desktop menu */}
