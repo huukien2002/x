@@ -133,6 +133,7 @@ const Header = () => {
       if (found) {
         try {
           const permission = await Notification.requestPermission();
+          console.log(Notification.permission);
           if (permission !== "granted") return;
           const messaging = getMessaging();
           // Lấy device token hiện tại
