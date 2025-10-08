@@ -28,6 +28,7 @@ import { useFacebookSDK } from "@/hooks/useFacebookSDK";
 import PostReactions from "./PostReactions";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import FriendAction from "./FriendAction";
+import PostImageDisplay from "./PostImageDisplay";
 interface User {
   id: string;
   username: string;
@@ -46,6 +47,7 @@ interface Post {
   title: string;
   thrilled: string;
   imageUrl: string;
+  imageUrls: string[];
   author: User;
   comments: Comment[];
   sent: boolean;
@@ -163,6 +165,8 @@ export default function PostCard({
         </Box>
       )}
 
+      {post?.imageUrls?.length > 0 && <PostImageDisplay post={post} />}
+
       <CardContent sx={{ pt: 0, pb: 1, flex: 1 }}>
         {/* Content */}
         <Typography
@@ -202,7 +206,7 @@ export default function PostCard({
                       fontSize: "2rem",
                       color:
                         theme.palette.mode === "light"
-                          ? theme.palette.text.primary 
+                          ? theme.palette.text.primary
                           : theme.palette.text.secondary,
                     })}
                   >

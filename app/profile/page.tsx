@@ -48,11 +48,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import PostForm from "../components/post/PostForm";
 import AddIcon from "@mui/icons-material/Add";
+import PostImageSlider from "../components/post/PostImageSlider";
+import PostFormMultiple from "../components/post/PostFormMultiple";
 interface Post {
   id: string;
   title: string;
   thrilled: string;
   imageUrl: string;
+  imageUrls: string[];
   createdAt: number;
   sent: boolean;
   authorId: string;
@@ -88,62 +91,6 @@ const ProfilePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 8;
 
-  // const fetchUserPosts = async (email: string) => {
-  //   setLoading(true);
-  //   try {
-  //     const postsRef = collection(db, "posts");
-  //     const q = query(postsRef, where("authorId", "==", email));
-  //     const snapshot = await getDocs(q);
-
-  //     let data: Post[] = snapshot.docs.map((doc) => {
-  //       const docData = doc.data();
-  //       return {
-  //         id: doc.id,
-  //         title: docData.title || "",
-  //         thrilled: docData.content || "",
-  //         imageUrl: docData.imageUrl || "",
-  //         createdAt: Number(docData.createdAt) || Date.now(),
-  //         sent: Boolean(docData.sent) || false,
-  //         authorId: docData.authorId || "",
-  //         favorite: docData.favorite ?? false,
-  //         visible: docData.visible ?? false,
-  //       };
-  //     });
-
-  //     if (selectedCollection !== "all") {
-  //       const collectionData = collections.find(
-  //         (c) => c.id === selectedCollection
-  //       );
-  //       if (collectionData?.postIds?.length) {
-  //         data = data.filter((p) => collectionData.postIds.includes(p.id));
-  //       } else {
-  //         data = [];
-  //       }
-  //     }
-
-  //     // Filter theo ngày
-  //     if (startDate)
-  //       data = data.filter((p) => p.createdAt >= startDate.valueOf());
-  //     if (endDate) data = data.filter((p) => p.createdAt <= endDate.valueOf());
-
-  //     // Filter favorite
-  //     if (favoriteFilter === "favorite") data = data.filter((p) => p.favorite);
-  //     if (favoriteFilter === "notFavorite")
-  //       data = data.filter((p) => !p.favorite);
-
-  //     // Filter visible
-  //     if (visibleFilter === "visible") data = data.filter((p) => p.visible);
-  //     if (visibleFilter === "notVisible") data = data.filter((p) => !p.visible);
-
-  //     data.sort((a, b) => b.createdAt - a.createdAt);
-  //     setPosts(data);
-  //   } catch (error) {
-  //     console.error("Error fetching posts:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const fetchUserPosts = async (email: string) => {
     setLoading(true);
     try {
@@ -158,6 +105,7 @@ const ProfilePage: React.FC = () => {
           title: d.title || "",
           thrilled: d.content || "",
           imageUrl: d.imageUrl || "",
+          imageUrls: d.imageUrls || [],
           createdAt: Number(d.createdAt) || Date.now(),
           sent: Boolean(d.sent) || false,
           authorId: d.authorId || "",
@@ -402,7 +350,14 @@ const ProfilePage: React.FC = () => {
       >
         <DialogTitle>Thêm bài viết mới</DialogTitle>
         <DialogContent>
-          <PostForm
+          {/* <PostForm
+            userId={user?.email}
+            onPostAdded={() => {
+              setRefreshKey((prev) => prev + 1);
+              setOpenPostForm(false);
+            }}
+          /> */}
+          <PostFormMultiple
             userId={user?.email}
             onPostAdded={() => {
               setRefreshKey((prev) => prev + 1);
@@ -674,6 +629,16 @@ const ProfilePage: React.FC = () => {
                       </Tooltip>
                     </Box>
                   </Box>
+                )}
+
+                {post.imageUrls?.length > 0 && (
+                  <PostImageSlider
+                    post={post}
+                    fetchCollections={fetchCollections}
+                    setZoomImage={setZoomImage}
+                    toggleFavorite={toggleFavorite}
+                    toggleVisible={toggleVisible}
+                  />
                 )}
                 <CardContent>
                   <Typography variant="h6">{post.title}</Typography>

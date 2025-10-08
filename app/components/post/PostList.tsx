@@ -21,6 +21,7 @@ interface Post {
   title: string;
   thrilled: string;
   imageUrl: string;
+  imageUrls: string[];
   author: User;
   comments: Comment[];
   sent: boolean;
@@ -91,6 +92,7 @@ export default function PostList({ currentUserId, refreshKey }: PostListProps) {
             title: postData.title,
             thrilled: postData.thrilled,
             imageUrl: postData.imageUrl,
+            imageUrls: postData.imageUrls,
             sent: postData.sent,
             createdAt: postData.createdAt,
             author,

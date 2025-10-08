@@ -23,6 +23,7 @@ import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase.config";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import PostFormMultiple from "./components/post/PostFormMultiple";
 interface UserType {
   id: string; // uid trong Firestore
   email: string;
@@ -361,6 +362,8 @@ export default function HomePage() {
             userId={currentUserId}
             onPostAdded={() => setRefreshKey((prev) => prev + 1)}
           /> */}
+
+          {/* <PostFormMultiple userId={currentUserId}  onPostAdded={() => setRefreshKey((prev) => prev + 1)} /> */}
 
           <PostList refreshKey={refreshKey} currentUserId={currentUserId} />
         </Box>
