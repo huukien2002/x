@@ -95,27 +95,6 @@ export default function PostFormMultiple({
       toast.info("Đang tải ảnh lên...");
 
       // 🔥 Upload tất cả ảnh lên Cloudinary
-      //   const uploadPromises = files.map(async (file) => {
-      //     if (!file.type.startsWith("image/")) {
-      //       throw new Error("File không hợp lệ: chỉ chấp nhận ảnh");
-      //     }
-
-      //     const formData = new FormData();
-      //     formData.append("file", file);
-      //     formData.append("upload_preset", "unsigned_preset");
-
-      //     const res = await fetch(
-      //       "https://api.cloudinary.com/v1_1/dhmr88vva/image/upload",
-      //       {
-      //         method: "POST",
-      //         body: formData,
-      //       }
-      //     );
-      //     const data = await res.json();
-      //     return data.secure_url;
-      //   });
-
-      //   const imageUrls = await Promise.all(uploadPromises);
       const imageUrls = await uploadFilesToCloudinary(Array.from(files));
 
       // ✅ Thêm post vào Firestore
