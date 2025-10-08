@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.2",
     "@mui/x-date-pickers": "^8.11.3",
     "@stripe/stripe-js": "^7.9.0",
+    "cloudinary": "^2.7.0",
     "dayjs": "^1.11.18",
     "firebase": "^12.2.1",
     "framer-motion": "^12.23.22",
