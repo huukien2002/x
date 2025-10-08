@@ -19,6 +19,7 @@ import { useUser } from "@/hooks/useUser";
 import { db as fsDb, rtdb } from "@/lib/firebase.config";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { ref, get, set, push, onValue, off, update } from "firebase/database";
+import { MultiImageSlider } from "../components/MultiImageSlider";
 
 interface UserType {
   id: string; // uid trong Firestore
@@ -416,14 +417,28 @@ export default function ChatPage() {
                       p={msg.type === "image" ? 0.5 : 1.2} // nhỏ hơn padding cho ảnh
                       borderRadius={2}
                       bgcolor={
-                        msg.sender === user?.email ? "primary.main" : "grey.200"
+                        msg.type !== "image" && msg.type !== "images"
+                          ? msg.sender === user?.email
+                            ? "primary.main"
+                            : "grey.200"
+                          : "transparent"
                       }
                       color={msg.sender === user?.email ? "white" : "black"}
                       maxWidth="70%"
                       onClick={() =>
                         setSelectedMsg(selectedMsg === msg.id ? null : msg.id)
                       }
-                      sx={{ cursor: "pointer" }}
+                      sx={{
+                        cursor: "pointer",
+                        border:
+                          msg.type === "image" || msg.type === "images"
+                            ? "1px solid rgba(214, 214, 214, 0.1)"
+                            : "none",
+                        boxShadow:
+                          msg.type === "image" || msg.type === "images"
+                            ? 1
+                            : "none",
+                      }}
                     >
                       {msg.type === "image" ? (
                         <img
@@ -436,7 +451,11 @@ export default function ChatPage() {
                             display: "block",
                           }}
                         />
+                      ) : msg.type === "images" ? (
+                        // 🖼️🖼️ Trường hợp nhiều ảnh
+                        <MultiImageSlider images={JSON.parse(msg.text)} />
                       ) : (
+                        // 💬 Trường hợp text
                         <Typography variant="body1">{msg.text}</Typography>
                       )}
 

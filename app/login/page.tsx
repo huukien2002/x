@@ -57,7 +57,7 @@ export default function LoginPage() {
 
       toast.success("Đăng nhập thành công");
       window.dispatchEvent(new Event("userChanged"));
-      router.push("/");
+      router.push("/profile");
       /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (err: any) {
       console.error(err);
@@ -66,41 +66,6 @@ export default function LoginPage() {
   };
 
   // Login bằng Google
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     const provider = new GoogleAuthProvider();
-  //     const result = await signInWithPopup(auth, provider);
-  //     const firebaseUser = result.user;
-
-  //     // Query user trong Firestore
-  //     const q = query(
-  //       collection(db, "users"),
-  //       where("email", "==", firebaseUser.email)
-  //     );
-  //     const snapshot = await getDocs(q);
-
-  //     if (snapshot.empty) {
-  //       toast.error("Tài khoản Google này chưa được đăng ký trong hệ thống!");
-  //       return;
-  //     }
-
-  //     // Lấy data user đầu tiên (thường chỉ có 1)
-  //     const userDoc = snapshot.docs[0];
-  //     const userData = {
-  //       id: userDoc.id,
-  //       ...userDoc.data(),
-  //     };
-
-  //     // Lưu user Firestore vào localStorage
-  //     localStorage.setItem("user", JSON.stringify(userData));
-  //     toast.success("Đăng nhập Google thành công");
-  //     window.dispatchEvent(new Event("userChanged"));
-  //     router.push("/");
-  //   } catch (err: any) {
-  //     console.error(err);
-  //     toast.error("Google login error: " + err.message);
-  //   }
-  // };
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -150,7 +115,7 @@ export default function LoginPage() {
       // Lưu user vào localStorage
       localStorage.setItem("user", JSON.stringify(userData));
       window.dispatchEvent(new Event("userChanged"));
-      router.push("/");
+      router.push("/profile");
     } catch (err: any) {
       console.error(err);
       toast.error("Google login error: " + err.message);

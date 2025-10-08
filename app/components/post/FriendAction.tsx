@@ -194,19 +194,40 @@ const FriendAction: React.FC<FriendActionProps> = ({ postToShare }) => {
             {friends.map((friend) => (
               <ListItemButton
                 key={friend.id}
+                // onClick={async () => {
+                //   const messageText = postToShare?.imageUrl ?? "";
+
+                //   const rId = await handleSelectUser(friend);
+                //   if (!rId) return;
+
+                //   await handleSend(
+                //     friend,
+                //     messageText,
+                //     postToShare ? "image" : "text",
+                //     rId
+                //   );
+
+                //   handleClose();
+                // }}
                 onClick={async () => {
-                  const messageText = postToShare?.imageUrl ?? "";
+                  const { imageUrl, imageUrls }: any = postToShare || {};
+                  const hasMany =
+                    Array.isArray(imageUrls) && imageUrls.length > 0;
+
+                  const messageText = hasMany
+                    ? JSON.stringify(imageUrls)
+                    : imageUrl ?? "";
+
+                  const messageType: any = hasMany
+                    ? "images"
+                    : imageUrl
+                    ? "image"
+                    : "text";
 
                   const rId = await handleSelectUser(friend);
                   if (!rId) return;
 
-                  await handleSend(
-                    friend,
-                    messageText,
-                    postToShare ? "image" : "text",
-                    rId
-                  );
-
+                  await handleSend(friend, messageText, messageType, rId);
                   handleClose();
                 }}
                 sx={{
