@@ -38,41 +38,14 @@ export default function FirebaseMessagingSetup() {
         console.log("FCM Device token:", token);
 
         // Lắng nghe notification khi app đang mở
-        // onMessage(messaging, (payload) => {
-        //   console.log("Foreground message received:", payload);
-
-        //   if (payload.notification) {
-        //     new Notification(payload.notification.title || "", {
-        //       body: payload.notification.body,
-        //       icon: "/favicon.ico",
-        //     });
-        //   }
-        // });
-
         onMessage(messaging, (payload) => {
           console.log("Foreground message received:", payload);
 
           if (payload.notification) {
-            // Hiển thị notification từ Service Worker, để browser luôn show
-            if (
-              "serviceWorker" in navigator &&
-              navigator.serviceWorker.controller
-            ) {
-              navigator.serviceWorker.getRegistration().then((reg) => {
-                if (reg) {
-                  reg.showNotification(payload.notification.title || "", {
-                    body: payload.notification.body,
-                    icon: "/favicon.ico",
-                  });
-                }
-              });
-            } else {
-              // fallback nếu SW chưa active
-              new Notification(payload.notification.title || "", {
-                body: payload.notification.body,
-                icon: "/favicon.ico",
-              });
-            }
+            new Notification(payload.notification.title || "", {
+              body: payload.notification.body,
+              icon: "/favicon.ico",
+            });
           }
         });
       } catch (err) {
