@@ -15,10 +15,10 @@ import Stripe from "stripe";
 import { useUser } from "@/hooks/useUser";
 
 const plans = [
-  { amount: 1, slots: 10 },
-  { amount: 10, slots: 100 },
-  { amount: 100, slots: 1000 },
-  { amount: 1000, slots: 10000 },
+  { amount: 1, slots: 100 },
+  { amount: 10, slots: 1000 },
+  { amount: 100, slots: 10000 },
+  { amount: 1000, slots: 100000 },
 ];
 
 export default function StripeTestPage() {
