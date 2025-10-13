@@ -50,7 +50,11 @@ export default function LoginPage() {
 
       // Lấy user (chỉ 1 kết quả)
       const userDoc = snapshot.docs[0];
-      const user = { id: userDoc.id, ...userDoc.data() };
+      const user: any = { id: userDoc.id, ...userDoc.data() };
+      if (user.banned) {
+        toast.error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+        return;
+      }
 
       // Lưu vào localStorage
       localStorage.setItem("user", JSON.stringify(user));
@@ -79,7 +83,7 @@ export default function LoginPage() {
       );
       const snapshot = await getDocs(q);
 
-      let userData;
+      let userData: any;
 
       if (snapshot.empty) {
         // Nếu user chưa tồn tại => tạo mới
@@ -89,6 +93,7 @@ export default function LoginPage() {
           avatar: firebaseUser.photoURL,
           postsRemaining: 5,
           createdAt: Date.now(),
+          banned: false,
         });
 
         userData = {
@@ -98,6 +103,7 @@ export default function LoginPage() {
           avatar: firebaseUser.photoURL,
           postsRemaining: 5,
           createdAt: Date.now(),
+          banned: false,
         };
 
         toast.success("Đăng nhập Google thành công!");
@@ -108,6 +114,13 @@ export default function LoginPage() {
           id: userDoc.id,
           ...userDoc.data(),
         };
+
+        // 🧱 Kiểm tra tài khoản bị banned
+        if (userData.banned) {
+          toast.error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+          await auth.signOut();
+          return;
+        }
 
         toast.success("Đăng nhập Google thành công!");
       }
