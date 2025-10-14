@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -285,6 +285,15 @@ export default function ChatPage() {
     setSelectedMsg(null);
   };
 
+  const [search, setSearch] = useState("");
+
+  // ✅ Lọc danh sách theo username (không phân biệt hoa thường)
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) =>
+      u.username?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [users, search]);
+
   if (!user) return null;
 
   return (
@@ -295,9 +304,18 @@ export default function ChatPage() {
           Users
         </div>
 
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Tìm theo tên người dùng..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ mb: 1 }}
+        />
+
         <div className="h-[calc(100vh-200px)] overflow-y-auto">
           <List disablePadding>
-            {users.map((u) => {
+            {filteredUsers.map((u) => {
               const room = findRoomWithUser(u.email);
               const hasNew = room?.unreadBy?.includes(user.email);
 

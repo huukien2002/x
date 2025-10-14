@@ -47,7 +47,7 @@ const Header = () => {
   };
 
   useEffect(() => {
-    let originalTitle = "Blog";
+    let originalTitle = "Posty";
     let interval: number | null = null;
     let step = 0;
 

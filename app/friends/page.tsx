@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   collection,
   query,
@@ -23,6 +23,7 @@ import {
   ListItemText,
   Typography,
   Box,
+  TextField,
 } from "@mui/material";
 import { useUser } from "@/hooks/useUser";
 import { db } from "@/lib/firebase.config";
@@ -133,6 +134,15 @@ export default function FriendPage() {
     (u) => u.email !== currentUserEmail && !getFriendship(u.email)
   );
 
+  const [search, setSearch] = useState("");
+
+  // Lọc danh sách theo username (không phân biệt hoa thường)
+  const filteredUsers = useMemo(() => {
+    return otherUsers.filter((u) =>
+      u.username.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [otherUsers, search]);
+
   if (!user) return null;
 
   return (
@@ -144,9 +154,20 @@ export default function FriendPage() {
             <Typography variant="h6" fontWeight={"bold"} gutterBottom>
               Bạn bè đề xuất
             </Typography>
-            {otherUsers.length === 0 ? (
+
+            {/* ✅ Ô tìm kiếm */}
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Tìm theo tên người dùng..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+
+            {filteredUsers.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
-                Không còn user nào
+                Không tìm thấy người dùng
               </Typography>
             ) : (
               <Box
@@ -156,7 +177,6 @@ export default function FriendPage() {
                   bgcolor: theme.palette.background.paper,
                   color: theme.palette.text.primary,
                   pr: 1,
-                  /* Custom scrollbar */
                   "&::-webkit-scrollbar": {
                     width: 8,
                   },
@@ -175,7 +195,7 @@ export default function FriendPage() {
                   },
                 })}
               >
-                {otherUsers.map((u) => {
+                {filteredUsers.map((u) => {
                   const status = requestStatus[u.email];
 
                   return (
@@ -217,22 +237,6 @@ export default function FriendPage() {
                     </ListItem>
                   );
                 })}
-
-                {/* {otherUsers.map((u) => (
-                  <ListItem key={u.id} divider>
-                    <ListItemAvatar>
-                      <Avatar src={u.avatar} />
-                    </ListItemAvatar>
-                    <ListItemText primary={u.username} secondary={u.email} />
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() => sendRequest(u.email)}
-                    >
-                      Kết bạn
-                    </Button>
-                  </ListItem>
-                ))} */}
               </Box>
             )}
           </CardContent>
