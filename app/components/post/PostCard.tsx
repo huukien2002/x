@@ -176,11 +176,11 @@ export default function PostCard({
           {post.thrilled}
         </Typography>
 
-        {!post.sent && (
+        {/* {!post.sent && (
           <Typography variant="caption" color="error">
             (Not sent yet)
           </Typography>
-        )}
+        )} */}
 
         <Box>
           {/* Actions */}
