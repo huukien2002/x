@@ -24,8 +24,10 @@ import {
   Button,
 } from "@mui/material";
 import { useUser } from "@/hooks/useUser";
+import PostImages from "@/app/components/PostImages";
 
 interface Post {
+  imageUrls: any;
   id: string;
   title: string;
   content?: string;
@@ -191,6 +193,7 @@ export default function PostDetail() {
             />
           </Box>
         )}
+        {post.imageUrls && <PostImages post={post} />}
 
         <Divider sx={{ my: 2 }} />
 
