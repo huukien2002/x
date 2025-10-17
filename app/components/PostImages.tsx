@@ -31,7 +31,7 @@ export default function PostImages({ post }: any) {
         width: "100%",
         maxWidth: 300,
         mx: "auto",
-        height: 200, // cố định chiều cao khung
+        height: 300, // cố định chiều cao khung
         overflow: "hidden",
         borderRadius: "12px",
       }}
