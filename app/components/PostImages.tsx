@@ -3,7 +3,7 @@ import { Box, IconButton } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
-export default function PostImages({ post }:any) {
+export default function PostImages({ post }: any) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!post.imageUrl && (!post.imageUrls || post.imageUrls.length === 0)) {
@@ -25,7 +25,17 @@ export default function PostImages({ post }:any) {
   };
 
   return (
-    <Box sx={{ position: "relative", maxWidth: 300, mx: "auto" }}>
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 300,
+        mx: "auto",
+        height: 200, // cố định chiều cao khung
+        overflow: "hidden",
+        borderRadius: "12px",
+      }}
+    >
       <img
         src={images[currentIndex]}
         alt={post.title}
