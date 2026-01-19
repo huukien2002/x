@@ -18,7 +18,7 @@ import { auth, db } from "../../lib/firebase.config";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { Google, Visibility, VisibilityOff } from "@mui/icons-material";
 import { useState } from "react";
-
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{6,}$/;
 interface LoginForm {
   email: string;
   password: string;
@@ -39,7 +39,7 @@ export default function LoginPage() {
       const q = query(
         collection(db, "users"),
         where("email", "==", data.email),
-        where("password", "==", data.password)
+        where("password", "==", data.password),
       );
       const snapshot = await getDocs(q);
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
       // Query user trong Firestore
       const q = query(
         collection(db, "users"),
-        where("email", "==", firebaseUser.email)
+        where("email", "==", firebaseUser.email),
       );
       const snapshot = await getDocs(q);
 
@@ -160,12 +160,18 @@ export default function LoginPage() {
             <Controller
               name="email"
               control={control}
-              rules={{ required: "Email is required" }}
+              rules={{
+                required: "Vui lòng nhập email",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Email không đúng định dạng",
+                },
+              }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
                   label="Email"
-                  type="email"
+                  type="text"
                   variant="outlined"
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
@@ -178,7 +184,22 @@ export default function LoginPage() {
             <Controller
               name="password"
               control={control}
-              rules={{ required: "Password is required" }}
+              rules={{
+                required: "Mật khẩu không được để trống",
+                minLength: {
+                  value: 6,
+                  message: "Mật khẩu phải có ít nhất 6 ký tự",
+                },
+                maxLength: {
+                  value: 12,
+                  message: "Mật khẩu phải có nhất 12 ký tự",
+                },
+                pattern: {
+                  value: PASSWORD_REGEX,
+                  message:
+                    "Mật khẩu phải có ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt",
+                },
+              }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}

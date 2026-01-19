@@ -139,7 +139,7 @@ export default function FriendPage() {
   // Lọc danh sách theo username (không phân biệt hoa thường)
   const filteredUsers = useMemo(() => {
     return otherUsers.filter((u) =>
-      u.username.toLowerCase().includes(search.toLowerCase())
+      u.email.toLowerCase().includes(search.toLowerCase().trim())
     );
   }, [otherUsers, search]);
 

@@ -24,6 +24,7 @@ interface RegisterForm {
   password: string;
   avatar?: FileList;
 }
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{6,}$/;
 
 export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export default function RegisterPage() {
     try {
       const q2 = query(
         collection(db, "users"),
-        where("email", "==", data.email)
+        where("email", "==", data.email),
       );
       const snapshot2 = await getDocs(q2);
       if (!snapshot2.empty) {
@@ -66,7 +67,7 @@ export default function RegisterPage() {
           {
             method: "POST",
             body: formData,
-          }
+          },
         );
         const data = await res.json();
         avatarUrl = data.url;
@@ -99,7 +100,7 @@ export default function RegisterPage() {
 
       const q = query(
         collection(db, "users"),
-        where("email", "==", user.email)
+        where("email", "==", user.email),
       );
 
       const snapshot = await getDocs(q);
@@ -175,7 +176,7 @@ export default function RegisterPage() {
             <Controller
               name="username"
               control={control}
-              rules={{ required: "Username is required" }}
+              rules={{ required: "Vui lòng nhập username" }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
@@ -193,7 +194,7 @@ export default function RegisterPage() {
               name="email"
               control={control}
               rules={{
-                required: "Email is required",
+                required: "Vui lòng nhập email",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                   message: "Invalid email format",
@@ -216,7 +217,22 @@ export default function RegisterPage() {
             <Controller
               name="password"
               control={control}
-              rules={{ required: "Password is required" }}
+              rules={{
+                required: "Mật khẩu không được để trống",
+                minLength: {
+                  value: 6,
+                  message: "Mật khẩu phải có ít nhất 6 ký tự",
+                },
+                maxLength: {
+                  value: 12,
+                  message: "Mật khẩu phải có nhất 12 ký tự",
+                },
+                pattern: {
+                  value: PASSWORD_REGEX,
+                  message:
+                    "Mật khẩu phải có ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt",
+                },
+              }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}

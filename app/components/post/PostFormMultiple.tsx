@@ -24,7 +24,7 @@ import Image from "next/image";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { uploadFilesToCloudinary } from "@/app/lib/cloudinary";
-
+const MAX_FILE_SIZE = 100 * 1024 * 1024
 interface PostFormMultipleProps {
   userId: string;
   onPostAdded: () => void;
@@ -56,18 +56,48 @@ export default function PostFormMultiple({
     return () => urls.forEach((url) => URL.revokeObjectURL(url));
   }, [files]);
 
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const fileList = e.target.files;
+  //   if (!fileList) return;
+
+  //   const newFiles = Array.from(fileList);
+  //   const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+
+  //   // Thêm cả vào 2 state
+  //   setFiles((prev) => [...prev, ...newFiles]);
+  //   setPreviews((prev) => [...prev, ...newPreviews]);
+
+  //   // Reset input để chọn lại cùng file cũng vẫn trigger được
+  //   e.target.value = "";
+  // };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList) return;
 
-    const newFiles = Array.from(fileList);
-    const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+    const selectedFiles = Array.from(fileList);
 
-    // Thêm cả vào 2 state
-    setFiles((prev) => [...prev, ...newFiles]);
+    const validFiles: File[] = [];
+
+    selectedFiles.forEach((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File "${file.name}" vượt quá 100MB`);
+        return;
+      }
+      validFiles.push(file);
+    });
+
+    if (validFiles.length === 0) {
+      e.target.value = "";
+      return;
+    }
+
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+
+    setFiles((prev) => [...prev, ...validFiles]);
     setPreviews((prev) => [...prev, ...newPreviews]);
 
-    // Reset input để chọn lại cùng file cũng vẫn trigger được
+    // reset input để chọn lại cùng file
     e.target.value = "";
   };
 
@@ -112,7 +142,7 @@ export default function PostFormMultiple({
       // 🔥 Trừ lượt bài viết còn lại
       const q = query(
         collection(db, "users"),
-        where("email", "==", user.email)
+        where("email", "==", user.email),
       );
       const snapshot = await getDocs(q);
       const userDoc = snapshot.docs[0];
@@ -153,18 +183,6 @@ export default function PostFormMultiple({
         boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
       }}
     >
-      {/* Header */}
-      {/* <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <Avatar
-          src={user?.avatar || ""}
-          alt={user?.username || "User"}
-          sx={{ width: 48, height: 48, mr: 2 }}
-        />
-        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {user?.username || "Bạn"}
-        </Typography>
-      </Box> */}
-
       {/* Title */}
       <TextField
         placeholder="Bạn đang nghĩ gì?"

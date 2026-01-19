@@ -79,12 +79,12 @@ export default function ChatPage() {
       const q1 = query(
         collection(fsDb, "friendships"),
         where("status", "==", "accepted"),
-        where("from", "==", user.email)
+        where("from", "==", user.email),
       );
       const q2 = query(
         collection(fsDb, "friendships"),
         where("status", "==", "accepted"),
-        where("to", "==", user.email)
+        where("to", "==", user.email),
       );
 
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
@@ -111,7 +111,7 @@ export default function ChatPage() {
         for (const chunk of chunks) {
           const qUsers = query(
             collection(fsDb, "users"),
-            where("email", "in", chunk)
+            where("email", "in", chunk),
           );
           const usersSnap = await getDocs(qUsers);
           usersSnap.forEach((doc) => {
@@ -202,7 +202,8 @@ export default function ChatPage() {
   };
   // 🔹 Gửi tin nhắn
   const handleSend = async () => {
-    if (!user || !selectedUser || !roomId || !text.trim()) return;
+    if (!user || !selectedUser || !roomId || !text.trim() || text.length > 2000)
+      return;
 
     const msgRef = push(ref(rtdb, `chats/${roomId}`));
     await set(msgRef, {
@@ -259,7 +260,7 @@ export default function ChatPage() {
     return rooms.find(
       (room) =>
         (room.sender === user.email && room.receiver === otherEmail) ||
-        (room.sender === otherEmail && room.receiver === user.email)
+        (room.sender === otherEmail && room.receiver === user.email),
     );
   };
 
@@ -290,7 +291,7 @@ export default function ChatPage() {
   // ✅ Lọc danh sách theo username (không phân biệt hoa thường)
   const filteredUsers = useMemo(() => {
     return users.filter((u) =>
-      u.username?.toLowerCase().includes(search.toLowerCase())
+      u.username?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [users, search]);
 
@@ -474,7 +475,17 @@ export default function ChatPage() {
                         <MultiImageSlider images={JSON.parse(msg.text)} />
                       ) : (
                         // 💬 Trường hợp text
-                        <Typography variant="body1">{msg.text}</Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            overflowY: "auto",
+                            overflowX: "hidden",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {msg.text}
+                        </Typography>
                       )}
 
                       {/* hiển thị reaction nếu có */}
