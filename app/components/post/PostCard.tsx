@@ -29,6 +29,7 @@ import PostReactions from "./PostReactions";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import FriendAction from "./FriendAction";
 import PostImageDisplay from "./PostImageDisplay";
+import PostTitle from "./PostTitle";
 interface User {
   id: string;
   username: string;
@@ -90,7 +91,7 @@ export default function PostCard({
         // Không check response nữa
         console.log("✅ Share popup đã mở, ghi nhận share");
         saveShareToFirestore();
-      }
+      },
     );
   };
 
@@ -137,8 +138,10 @@ export default function PostCard({
         sx={{ pb: 0 }}
       />
 
+      <PostTitle post={post} />
+
       {/* Title */}
-      <Typography
+      {/* <Typography
         variant="subtitle1"
         px={2}
         pt={0.5}
@@ -147,7 +150,7 @@ export default function PostCard({
         noWrap
       >
         {post.title}
-      </Typography>
+      </Typography> */}
 
       {/* Image */}
       {post.imageUrl && (

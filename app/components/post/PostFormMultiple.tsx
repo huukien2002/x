@@ -110,6 +110,16 @@ export default function PostFormMultiple({
     if (loading) return;
     if (!user) return;
 
+    if (title.length === 0) {
+      toast.error("Tiêu đề không được bỏ trống");
+      return;
+    }
+
+    if ( title.length > 1000) {
+      toast.error("Tiêu đề không được quá 1000 kí tự");
+      return;
+    }
+
     if (user?.postsRemaining <= 0) {
       toast.error("Bạn đã hết lượt thêm bài viết.");
       return;
