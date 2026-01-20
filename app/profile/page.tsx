@@ -50,6 +50,7 @@ import PostForm from "../components/post/PostForm";
 import AddIcon from "@mui/icons-material/Add";
 import PostImageSlider from "../components/post/PostImageSlider";
 import PostFormMultiple from "../components/post/PostFormMultiple";
+import PostTitle from "../components/post/PostTitle";
 interface Post {
   id: string;
   title: string;
@@ -647,11 +648,12 @@ const ProfilePage: React.FC = () => {
                   />
                 )}
                 <CardContent>
-                  <Typography variant="h6">{post.title}</Typography>
+                  {/* <Typography variant="h6">{post.title}</Typography> */}
+                  <PostTitle post={post} />
                   <Typography variant="body2" mb={1}>
                     {post.thrilled}
                   </Typography>
-                  <Typography variant="caption">
+                  <Typography variant="caption" sx={{ marginLeft:2 }}>
                     {new Date(post.createdAt).toLocaleString()}
                   </Typography>
                 </CardContent>
