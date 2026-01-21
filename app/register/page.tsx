@@ -30,6 +30,7 @@ export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { handleSubmit, control, register, reset } = useForm<RegisterForm>({
     defaultValues: {
@@ -44,6 +45,8 @@ export default function RegisterPage() {
 
   // Đăng ký thủ công
   const onSubmit: SubmitHandler<RegisterForm> = async (data) => {
+    if (loading) return; // ⛔ chặn submit trùng
+    setLoading(true);
     try {
       const q2 = query(
         collection(db, "users"),
@@ -88,6 +91,8 @@ export default function RegisterPage() {
     } catch (err: any) {
       console.error(err);
       alert("Error: " + err.message);
+    } finally {
+      setLoading(false); // ✅ luôn mở lại nút
     }
   };
 
@@ -125,12 +130,39 @@ export default function RegisterPage() {
     }
   };
 
+  // const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     setFile(file);
+  //     setAvatarPreview(URL.createObjectURL(file));
+  //   }
+  // };
+
+  const MAX_SIZE_MB = 2;
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
+    if (!file) return;
+
+    // ❌ Validate type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("Vui lòng upload file định dạng ảnh");
+      e.target.value = ""; // reset input
+      return;
     }
+
+    // ❌ Validate size
+    const maxSize = MAX_SIZE_MB * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`Dung lượng ảnh không được vượt quá ${MAX_SIZE_MB}MB`);
+      e.target.value = "";
+      return;
+    }
+
+    // ✅ Hợp lệ
+    setFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
 
   return (
@@ -176,7 +208,13 @@ export default function RegisterPage() {
             <Controller
               name="username"
               control={control}
-              rules={{ required: "Vui lòng nhập username" }}
+              rules={{
+                required: "Vui lòng nhập username",
+                maxLength: {
+                  value: 15,
+                  message: "Username tối đa 15 kí tự",
+                },
+              }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
@@ -197,7 +235,7 @@ export default function RegisterPage() {
                 required: "Vui lòng nhập email",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Invalid email format",
+                  message: "Email không hợp lệ",
                 },
               }}
               render={({ field, fieldState }) => (
@@ -225,7 +263,7 @@ export default function RegisterPage() {
                 },
                 maxLength: {
                   value: 12,
-                  message: "Mật khẩu phải có nhất 12 ký tự",
+                  message: "Mật khẩu tối đa 12 kí tự",
                 },
                 pattern: {
                   value: PASSWORD_REGEX,
@@ -258,8 +296,13 @@ export default function RegisterPage() {
               )}
             />
 
-            <Button type="submit" variant="contained" color="primary">
-              Register
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={loading}
+            >
+              {loading ? "Registering..." : "Register"}
             </Button>
           </Stack>
         </form>
