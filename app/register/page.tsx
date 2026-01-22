@@ -214,6 +214,10 @@ export default function RegisterPage() {
                   value: 15,
                   message: "Username tối đa 15 kí tự",
                 },
+                pattern: {
+                  value: /^(?!\s*$).+/,
+                  message: "Username không được chỉ chứa khoảng trắng",
+                },
               }}
               render={({ field, fieldState }) => (
                 <TextField
